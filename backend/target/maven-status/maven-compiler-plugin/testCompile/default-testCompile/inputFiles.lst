@@ -1,0 +1,9 @@
+/workspace/src/test/java/com/example/cms/article/ArticleStatePolicyTest.java
+/workspace/src/test/java/com/example/cms/article/PdfImportServiceTest.java
+/workspace/src/test/java/com/example/cms/attachment/UploadPolicyTest.java
+/workspace/src/test/java/com/example/cms/auth/AuthIntegrationTest.java
+/workspace/src/test/java/com/example/cms/folder/AdminFolderServiceTest.java
+/workspace/src/test/java/com/example/cms/portal/PortalVisibilityTest.java
+/workspace/src/test/java/com/example/cms/search/SearchServiceTest.java
+/workspace/src/test/java/com/example/cms/security/JwtPropertiesValidatorTest.java
+/workspace/src/test/java/com/example/cms/security/JwtTokenProviderTest.java
