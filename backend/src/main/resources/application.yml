@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: cms-new-community
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cms_community}
+    username: ${SPRING_DATASOURCE_USERNAME:cms}
+    password: ${SPRING_DATASOURCE_PASSWORD:cms}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  sql:
+    init:
+      mode: ${SPRING_SQL_INIT_MODE:never}
+      data-locations: classpath:db/seed/community_seed.sql
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.cmsnew.community: INFO
+
+community:
+  frontend-origin: ${COMMUNITY_FRONTEND_ORIGIN:http://localhost:5173}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:cms_community;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
