@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: cms_community
+      POSTGRES_USER: cms
+      POSTGRES_PASSWORD: cms
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cms -d cms_community"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - cms-community-data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cms_community
+      SPRING_DATASOURCE_USERNAME: cms
+      SPRING_DATASOURCE_PASSWORD: cms
+      SPRING_SQL_INIT_MODE: always
+      COMMUNITY_FRONTEND_ORIGIN: http://localhost:5173
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  cms-community-data:

@@ -1,0 +1,1024 @@
+openapi: 3.0.3
+info:
+  title: CMS New Community API
+  version: 0.1.0
+  description: REST API contract for a Korean large-community web service.
+servers:
+  - url: https://api.example.com
+    description: Production placeholder
+  - url: http://localhost:8080
+    description: Local development
+tags:
+  - name: Auth
+  - name: Members
+  - name: Boards
+  - name: Posts
+  - name: Comments
+  - name: Search
+  - name: Notifications
+  - name: Reports
+  - name: Admin
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a member account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Member registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Sign out the current session
+      responses:
+        '204':
+          description: Signed out
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/users/me:
+    get:
+      tags: [Members]
+      summary: Get current member profile
+      responses:
+        '200':
+          description: Current member profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [Members]
+      summary: Update current member profile and preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberRequest'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/boards:
+    get:
+      tags: [Boards]
+      summary: List visible boards
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Board list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedBoards'
+    post:
+      tags: [Admin]
+      summary: Create a board
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BoardUpsertRequest'
+      responses:
+        '201':
+          description: Board created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/boards/{boardId}:
+    get:
+      tags: [Boards]
+      summary: Get board detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/BoardId'
+      responses:
+        '200':
+          description: Board detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Admin]
+      summary: Update board settings
+      parameters:
+        - $ref: '#/components/parameters/BoardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BoardUpsertRequest'
+      responses:
+        '200':
+          description: Board updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/boards/{boardId}/subscription:
+    put:
+      tags: [Boards]
+      summary: Subscribe to a board
+      parameters:
+        - $ref: '#/components/parameters/BoardId'
+      responses:
+        '204':
+          description: Subscribed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Boards]
+      summary: Unsubscribe from a board
+      parameters:
+        - $ref: '#/components/parameters/BoardId'
+      responses:
+        '204':
+          description: Unsubscribed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/boards/{boardId}/posts:
+    get:
+      tags: [Posts]
+      summary: List posts in a board
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/BoardId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [latest, popular, commented]
+            default: latest
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Post list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedPosts'
+    post:
+      tags: [Posts]
+      summary: Create a post in a board
+      parameters:
+        - $ref: '#/components/parameters/BoardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreateRequest'
+      responses:
+        '201':
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/posts/{postId}:
+    get:
+      tags: [Posts]
+      summary: Get post detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '200':
+          description: Post detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Posts]
+      summary: Update own post
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUpdateRequest'
+      responses:
+        '200':
+          description: Post updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Posts]
+      summary: Delete own post
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '204':
+          description: Post deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/posts/{postId}/comments:
+    get:
+      tags: [Comments]
+      summary: List comments for a post
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Comment list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedComments'
+    post:
+      tags: [Comments]
+      summary: Create a comment
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreateRequest'
+      responses:
+        '201':
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/posts/{postId}/reactions:
+    put:
+      tags: [Posts]
+      summary: Add or replace current member reaction
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+      responses:
+        '200':
+          description: Updated reaction summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReactionSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [Posts]
+      summary: Remove current member reaction
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '200':
+          description: Updated reaction summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReactionSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/search:
+    get:
+      tags: [Search]
+      summary: Search posts by keyword and filters
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+        - name: boardId
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [relevance, latest]
+            default: relevance
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedPosts'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/v1/notifications:
+    get:
+      tags: [Notifications]
+      summary: List current member notifications
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Notification list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedNotifications'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/notifications/{notificationId}/read:
+    patch:
+      tags: [Notifications]
+      summary: Mark a notification as read
+      parameters:
+        - $ref: '#/components/parameters/NotificationId'
+      responses:
+        '204':
+          description: Notification marked read
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/reports:
+    post:
+      tags: [Reports]
+      summary: Report a post or comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCreateRequest'
+      responses:
+        '201':
+          description: Report submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/admin/reports:
+    get:
+      tags: [Admin]
+      summary: List reports for moderation
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [OPEN, IN_REVIEW, ACTIONED, REJECTED, DUPLICATE]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Report queue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedReports'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/admin/reports/{reportId}/actions:
+    post:
+      tags: [Admin]
+      summary: Record a moderation action for a report
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationActionRequest'
+      responses:
+        '201':
+          description: Action recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModerationAction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    BoardId:
+      name: boardId
+      in: path
+      required: true
+      schema:
+        type: string
+    PostId:
+      name: postId
+      in: path
+      required: true
+      schema:
+        type: string
+    NotificationId:
+      name: notificationId
+      in: path
+      required: true
+      schema:
+        type: string
+    ReportId:
+      name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Authentication required or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Not allowed for the current member
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password, nickname]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 10
+        nickname:
+          type: string
+          minLength: 2
+          maxLength: 20
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    AuthSession:
+      type: object
+      required: [accessToken, member]
+      properties:
+        accessToken:
+          type: string
+        member:
+          $ref: '#/components/schemas/MemberProfile'
+    MemberProfile:
+      type: object
+      required: [id, nickname, role, status]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        nickname:
+          type: string
+        role:
+          type: string
+          enum: [MEMBER, MODERATOR, ADMIN]
+        status:
+          type: string
+          enum: [ACTIVE, PENDING_VERIFICATION, SUSPENDED, WITHDRAWN]
+        profileImageUrl:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        unreadNotificationCount:
+          type: integer
+    UpdateMemberRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          minLength: 2
+          maxLength: 20
+        bio:
+          type: string
+          maxLength: 500
+        notificationPreferences:
+          type: object
+          additionalProperties:
+            type: boolean
+    Board:
+      type: object
+      required: [id, slug, name, visibility, postingPolicy]
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        visibility:
+          type: string
+          enum: [PUBLIC, MEMBERS_ONLY, CLOSED]
+        postingPolicy:
+          type: string
+          enum: [MEMBERS, MODERATORS, ADMINS]
+        categoryOptions:
+          type: array
+          items:
+            type: string
+        sortOrder:
+          type: integer
+        isArchived:
+          type: boolean
+    BoardUpsertRequest:
+      type: object
+      required: [slug, name, visibility, postingPolicy]
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        visibility:
+          type: string
+          enum: [PUBLIC, MEMBERS_ONLY, CLOSED]
+        postingPolicy:
+          type: string
+          enum: [MEMBERS, MODERATORS, ADMINS]
+        categoryOptions:
+          type: array
+          items:
+            type: string
+        sortOrder:
+          type: integer
+        isArchived:
+          type: boolean
+    PostSummary:
+      type: object
+      required: [id, boardId, title, authorNickname, status, createdAt]
+      properties:
+        id:
+          type: string
+        boardId:
+          type: string
+        boardName:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        authorNickname:
+          type: string
+        status:
+          type: string
+          enum: [PUBLISHED, HIDDEN, DELETED, LOCKED]
+        viewCount:
+          type: integer
+        commentCount:
+          type: integer
+        reactionCount:
+          type: integer
+        isNotice:
+          type: boolean
+        isPinned:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    PostDetail:
+      allOf:
+        - $ref: '#/components/schemas/PostSummary'
+        - type: object
+          required: [body]
+          properties:
+            body:
+              type: string
+            attachments:
+              type: array
+              items:
+                $ref: '#/components/schemas/Attachment'
+            currentMemberReaction:
+              type: string
+              nullable: true
+    PostCreateRequest:
+      type: object
+      required: [title, body]
+      properties:
+        title:
+          type: string
+          minLength: 2
+          maxLength: 120
+        body:
+          type: string
+          minLength: 1
+        category:
+          type: string
+        attachmentIds:
+          type: array
+          items:
+            type: string
+    PostUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 2
+          maxLength: 120
+        body:
+          type: string
+          minLength: 1
+        category:
+          type: string
+    Attachment:
+      type: object
+      required: [id, fileName, contentType, sizeBytes]
+      properties:
+        id:
+          type: string
+        fileName:
+          type: string
+        contentType:
+          type: string
+        sizeBytes:
+          type: integer
+        url:
+          type: string
+    Comment:
+      type: object
+      required: [id, postId, authorNickname, body, status, createdAt]
+      properties:
+        id:
+          type: string
+        postId:
+          type: string
+        parentCommentId:
+          type: string
+          nullable: true
+        authorNickname:
+          type: string
+        body:
+          type: string
+        status:
+          type: string
+          enum: [PUBLISHED, HIDDEN, DELETED]
+        depth:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    CommentCreateRequest:
+      type: object
+      required: [body]
+      properties:
+        parentCommentId:
+          type: string
+          nullable: true
+        body:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    ReactionRequest:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [LIKE, FUN, INSIGHTFUL]
+    ReactionSummary:
+      type: object
+      properties:
+        postId:
+          type: string
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+        currentMemberReaction:
+          type: string
+          nullable: true
+    Notification:
+      type: object
+      required: [id, type, title, message, createdAt]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [REPLY, COMMENT_ON_POST, MODERATION_RESULT, NOTICE]
+        title:
+          type: string
+        message:
+          type: string
+        targetType:
+          type: string
+          nullable: true
+        targetId:
+          type: string
+          nullable: true
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    ReportCreateRequest:
+      type: object
+      required: [targetType, targetId, reasonCode]
+      properties:
+        targetType:
+          type: string
+          enum: [POST, COMMENT]
+        targetId:
+          type: string
+        reasonCode:
+          type: string
+          enum: [SPAM, ABUSE, ILLEGAL, PRIVACY, OTHER]
+        description:
+          type: string
+          maxLength: 1000
+    Report:
+      type: object
+      required: [id, targetType, targetId, reasonCode, status, createdAt]
+      properties:
+        id:
+          type: string
+        reporterNickname:
+          type: string
+        targetType:
+          type: string
+          enum: [POST, COMMENT]
+        targetId:
+          type: string
+        reasonCode:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [OPEN, IN_REVIEW, ACTIONED, REJECTED, DUPLICATE]
+        createdAt:
+          type: string
+          format: date-time
+    ModerationActionRequest:
+      type: object
+      required: [actionType, reason]
+      properties:
+        actionType:
+          type: string
+          enum: [HIDE, RESTORE, DELETE, WARN, SUSPEND, REJECT_REPORT, MARK_DUPLICATE]
+        reason:
+          type: string
+          minLength: 3
+        visibleToMember:
+          type: boolean
+          default: true
+    ModerationAction:
+      type: object
+      required: [id, actorNickname, actionType, reason, createdAt]
+      properties:
+        id:
+          type: string
+        actorNickname:
+          type: string
+        reportId:
+          type: string
+          nullable: true
+        actionType:
+          type: string
+        reason:
+          type: string
+        visibleToMember:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    PagedBoards:
+      allOf:
+        - $ref: '#/components/schemas/PageEnvelope'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Board'
+    PagedPosts:
+      allOf:
+        - $ref: '#/components/schemas/PageEnvelope'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/PostSummary'
+    PagedComments:
+      allOf:
+        - $ref: '#/components/schemas/PageEnvelope'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Comment'
+    PagedNotifications:
+      allOf:
+        - $ref: '#/components/schemas/PageEnvelope'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Notification'
+    PagedReports:
+      allOf:
+        - $ref: '#/components/schemas/PageEnvelope'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Report'
+    PageEnvelope:
+      type: object
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
