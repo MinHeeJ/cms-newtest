@@ -27,7 +27,7 @@ public class AuthService {
         if (user == null || !passwordEncoder.matches(request.password(), user.passwordHash())) {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
         }
-        UserRoleProfile profile = profile(user.username(), user.displayName(), user.role());
+        UserRoleProfile profile = profile(user.username(), user.role());
         return new LoginResponse(tokenProvider.createToken(user.username(), user.role()), profile);
     }
 

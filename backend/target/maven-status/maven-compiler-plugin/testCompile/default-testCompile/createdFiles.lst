@@ -1,0 +1,9 @@
+com/example/cms/auth/AuthIntegrationTest.class
+com/example/cms/security/JwtTokenProviderTest.class
+com/example/cms/security/JwtPropertiesValidatorTest.class
+com/example/cms/search/SearchServiceTest.class
+com/example/cms/article/PdfImportServiceTest.class
+com/example/cms/folder/AdminFolderServiceTest.class
+com/example/cms/attachment/UploadPolicyTest.class
+com/example/cms/article/ArticleStatePolicyTest.class
+com/example/cms/portal/PortalVisibilityTest.class
