@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { portalApi, type Folder as FolderType } from "../../lib/api/portal";
 import { errorMessage } from "../../lib/error-messages";
 import { Button } from "../../ui-components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui-components/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui-components/card";
+import { cn } from "../../lib/utils";
+import { EmptyState } from "../common/EmptyState";
 import { ErrorState } from "../common/ErrorState";
 import { LoadingState } from "../common/LoadingState";
 
@@ -57,16 +59,19 @@ export function FolderTree({ selectedFolderId, onSelect }: Props) {
       {nodes.map((folder) => (
         <div key={folder.id}>
           <div className="flex items-center gap-1" style={{ paddingLeft: depth * 14 }}>
-            <Button aria-label="펼치기" size="icon" type="button" variant="ghost" onClick={() => void toggle(folder.id)}>
-              {expanded.has(folder.id) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            <Button aria-label="펼치기" className="size-8" size="icon" type="button" variant="ghost" onClick={() => void toggle(folder.id)}>
+              {expanded.has(folder.id) ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
             </Button>
             <button
-              className={`flex min-h-9 flex-1 items-center gap-2 rounded-md px-2 text-left text-sm ${selectedFolderId === folder.id ? "bg-[var(--accent-soft)] font-semibold" : "hover:bg-[var(--panel-muted)]"}`}
+              className={cn(
+                "flex min-h-9 flex-1 items-center gap-2 rounded-md px-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+                selectedFolderId === folder.id && "bg-muted font-medium text-foreground"
+              )}
               type="button"
               onClick={() => onSelect(folder.id)}
             >
-              <Folder size={16} />
-              <span>{folder.title}</span>
+              <Folder className="size-4 text-muted-foreground" />
+              <span className="truncate">{folder.title}</span>
             </button>
           </div>
           {expanded.has(folder.id) && children[folder.id] ? renderNodes(children[folder.id], depth + 1) : null}
@@ -79,11 +84,15 @@ export function FolderTree({ selectedFolderId, onSelect }: Props) {
     <Card>
       <CardHeader>
         <CardTitle>폴더</CardTitle>
+        <CardDescription>열람할 문서 폴더를 선택하세요.</CardDescription>
       </CardHeader>
       <CardContent>
-        {loading && !children.root ? <LoadingState /> : null}
-        {error ? <ErrorState message={error} /> : null}
-        {children.root ? renderNodes(children.root) : null}
+        <div className="grid gap-3">
+          {loading && !children.root ? <LoadingState /> : null}
+          {error ? <ErrorState message={error} /> : null}
+          {children.root && children.root.length > 0 ? renderNodes(children.root) : null}
+          {children.root && children.root.length === 0 ? <EmptyState message="표시할 폴더가 없습니다." /> : null}
+        </div>
       </CardContent>
     </Card>
   );

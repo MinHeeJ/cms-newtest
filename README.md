@@ -6,7 +6,7 @@ React 18/Vite 5 frontend, Spring Boot 3.3 backend, and PostgreSQL 16 based CMS f
 
 - `frontend/`: React Router separated `/portal/**`, `/admin/**`, `/login` UI with Zustand auth state, Axios JWT interceptor, Tailwind v4, shadcn/Radix-style local components, lucide-react icons, and React Markdown rendering.
 - `backend/`: Spring Boot stateless JWT API, Spring Security access control, MyBatis Plus mapper interfaces with per-interface `@Mapper`, upload validation, local storage abstraction, search, and health endpoint.
-- `database/init/001_schema.sql`: PostgreSQL schema, indexes, and local seed accounts.
+- `database/init/schema.sql`: PostgreSQL schema, indexes, and local seed accounts.
 - `docker-compose.yml`: `cms-frontend`, `cms-backend`, and `postgres` services with published ports and healthchecks.
 
 ## Local Preview

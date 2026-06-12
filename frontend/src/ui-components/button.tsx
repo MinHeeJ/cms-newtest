@@ -4,19 +4,23 @@ import * as React from "react";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-[var(--primary)] text-[var(--primary-foreground)] hover:brightness-95",
-        secondary: "border-[var(--border)] bg-[var(--panel)] text-[var(--foreground)] hover:bg-[var(--panel-muted)]",
-        danger: "border-transparent bg-[var(--danger)] text-white hover:brightness-95",
-        ghost: "border-transparent bg-transparent hover:bg-[var(--panel-muted)]"
+        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        danger: "bg-destructive text-white shadow-sm hover:bg-destructive/90",
+        destructive: "bg-destructive text-white shadow-sm hover:bg-destructive/90",
+        outline: "border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline"
       },
       size: {
-        default: "h-10",
-        sm: "h-8 px-2",
-        icon: "h-9 w-9 px-0"
+        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        icon: "size-9 p-0"
       }
     },
     defaultVariants: {
