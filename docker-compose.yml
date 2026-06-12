@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: cms-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cms}
+      POSTGRES_USER: ${POSTGRES_USER:-cms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cms}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cms} -d ${POSTGRES_DB:-cms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cms-net
+
+  cms-backend:
+    build:
+      context: ./backend
+    container_name: cms-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-cms}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-cms}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-cms}
+      JWT_SECRET: ${JWT_SECRET:-ChangeMeJwtSecret1234567890ABCDEF}
+      UPLOAD_BASE_PATH: /app/uploads
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads-data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - cms-net
+
+  cms-frontend:
+    build:
+      context: ./frontend
+    container_name: cms-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      cms-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cms-net
+
+volumes:
+  postgres-data:
+  uploads-data:
+
+networks:
+  cms-net:
+    driver: bridge
