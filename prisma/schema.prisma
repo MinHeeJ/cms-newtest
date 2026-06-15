@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SiteDraftStatus {
+  draft
+  validating
+  ready_to_generate
+  generating
+  generated
+  blocked
+  archived
+}
+
+enum DomainSelectionSource {
+  selected
+  auto_added
+}
+
+enum DocumentBundleStatus {
+  pending
+  generated
+  stale
+  failed
+  approved
+}
+
+enum ValidationOutcome {
+  passed
+  passed_with_warnings
+  blocked
+}
+
+enum ValidationSeverity {
+  blocker
+  warning
+}
+
+enum ValidationIssueCode {
+  MISSING_DOMAIN
+  INVALID_GENERATION_ORDER
+  CYCLIC_DEPENDENCY
+  NON_ENGLISH_PROSE
+  STALE_DOCUMENT_BUNDLE
+}
+
+enum GenerationJobStatus {
+  queued
+  running
+  succeeded
+  failed
+  cancelled
+}
+
+model CmsSiteDraft {
+  id                 String             @id @default(uuid())
+  site_name          String
+  site_slug          String
+  description        String?
+  target_audience    String?
+  status             SiteDraftStatus    @default(draft)
+  selected_domains   String[]
+  auto_added_domains String[]
+  effective_domains  String[]
+  validation_state   ValidationOutcome?
+  created_by         String
+  created_at         DateTime           @default(now())
+  updated_at         DateTime           @updatedAt
+  domainSelections   DomainSelection[]
+  generationStages   GenerationStage[]
+  documentBundles    DocumentBundle[]
+  validationReports  ValidationReport[]
+  generationJobs     GenerationJob[]
+  auditEvents        AuditEvent[]
+
+  @@unique([site_slug])
+  @@map("cms_site_drafts")
+}
+
+model DomainDefinition {
+  domain_code              String            @id
+  display_name             String
+  description              String
+  selectable               Boolean
+  requires                 String[]
+  default_generation_order Int
+  default_enabled          Boolean           @default(false)
+  capability               String            @default("Core")
+  active                   Boolean           @default(true)
+  domainSelections         DomainSelection[]
+  documentBundles          DocumentBundle[]
+
+  @@map("domain_definitions")
+}
+
+model DomainSelection {
+  id          String                @id @default(uuid())
+  draft_id    String
+  domain_code String
+  source      DomainSelectionSource
+  required_by String?
+  created_at  DateTime              @default(now())
+  draft       CmsSiteDraft          @relation(fields: [draft_id], references: [id], onDelete: Cascade)
+  domain      DomainDefinition      @relation(fields: [domain_code], references: [domain_code])
+
+  @@unique([draft_id, domain_code])
+  @@map("domain_selections")
+}
+
+model GenerationStage {
+  id                 String       @id @default(uuid())
+  draft_id           String
+  stage_number       Int
+  domain_codes       String[]
+  dependency_summary String
+  draft              CmsSiteDraft @relation(fields: [draft_id], references: [id], onDelete: Cascade)
+
+  @@unique([draft_id, stage_number])
+  @@map("generation_stages")
+}
+
+model DocumentBundle {
+  id             String               @id @default(uuid())
+  draft_id       String
+  domain_code    String
+  spec_path      String
+  plan_path      String
+  tasks_path     String
+  language       String               @default("English")
+  status         DocumentBundleStatus @default(pending)
+  failure_reason String?
+  reviewed_by    String?
+  generated_at   DateTime?
+  reviewed_at    DateTime?
+  draft          CmsSiteDraft         @relation(fields: [draft_id], references: [id], onDelete: Cascade)
+  domain         DomainDefinition     @relation(fields: [domain_code], references: [domain_code])
+
+  @@unique([draft_id, domain_code])
+  @@map("document_bundles")
+}
+
+model ValidationReport {
+  id         String            @id @default(uuid())
+  draft_id   String
+  outcome    ValidationOutcome
+  checked_at DateTime          @default(now())
+  checked_by String
+  draft      CmsSiteDraft      @relation(fields: [draft_id], references: [id], onDelete: Cascade)
+  issues     ValidationIssue[]
+
+  @@map("validation_reports")
+}
+
+model ValidationIssue {
+  id               String              @id @default(uuid())
+  report_id        String
+  severity         ValidationSeverity
+  code             ValidationIssueCode
+  domain_code      String?
+  message          String
+  suggested_action String?
+  report           ValidationReport    @relation(fields: [report_id], references: [id], onDelete: Cascade)
+
+  @@map("validation_issues")
+}
+
+model GenerationJob {
+  id           String              @id @default(uuid())
+  draft_id     String
+  status       GenerationJobStatus @default(queued)
+  requested_by String
+  requested_at DateTime            @default(now())
+  started_at   DateTime?
+  finished_at  DateTime?
+  progress     Int                 @default(0)
+  draft        CmsSiteDraft        @relation(fields: [draft_id], references: [id], onDelete: Cascade)
+
+  @@map("generation_jobs")
+}
+
+model AuditEvent {
+  id            String       @id @default(uuid())
+  draft_id      String?
+  actor_id      String
+  event_type    String
+  event_payload Json
+  created_at    DateTime     @default(now())
+  draft         CmsSiteDraft? @relation(fields: [draft_id], references: [id], onDelete: SetNull)
+
+  @@map("audit_events")
+}
