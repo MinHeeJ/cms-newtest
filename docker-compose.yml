@@ -1,0 +1,27 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      PORT: 3000
+      DATABASE_URL: /app/backend/data/idea-notebook.sqlite
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "3000:3000"
+    volumes:
+      - api-data:/app/backend/data
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:3000
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+
+volumes:
+  api-data:

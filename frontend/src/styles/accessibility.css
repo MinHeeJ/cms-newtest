@@ -1,0 +1,44 @@
+:focus-visible {
+  outline: 0;
+  box-shadow:
+    0 0 0 2px var(--secondary-background),
+    0 0 0 5px var(--border);
+}
+
+.btn:focus-visible,
+.header-icon-button:focus-visible,
+.icon-only:focus-visible,
+.input:focus-visible,
+.textarea:focus-visible,
+.select:focus-visible,
+.search-bar:focus-within,
+.segmented-control button:focus-visible,
+.rail-options button:focus-visible,
+.rail-toggle:focus-visible,
+.accent-swatch:focus-visible,
+.check-button:focus-visible {
+  outline: 0;
+  box-shadow:
+    0 0 0 2px var(--secondary-background),
+    0 0 0 5px var(--border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .btn:hover,
+  .header-icon-button:hover,
+  .icon-only:hover,
+  .idea-card:hover,
+  .accent-swatch:hover,
+  .accent-swatch.active {
+    transform: none;
+  }
+}
