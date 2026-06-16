@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, FileCheck2, FilePlus2, Layers3, Sigma } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileCheck2, FilePlus2, Layers3, ShieldCheck, Sigma } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,20 +14,55 @@ export default async function DashboardPage() {
 
   return (
     <div className="h-full overflow-y-auto p-6 custom-scrollbar">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-xl font-semibold text-stone-900 mb-1">Dashboard</h1>
-          <p className="text-sm text-stone-600">
-            Monitor CMS site drafts, validation outcomes, and generated document bundles.
+      <section
+        aria-labelledby="dashboard-hero-title"
+        className="relative mb-8 overflow-hidden rounded-lg bg-black px-6 py-8 text-white shadow-sm lg:px-8 lg:py-10"
+        data-testid="dashboard-hero"
+      >
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[url('/cms-dashboard-hero.png')] bg-cover bg-center opacity-80"
+          data-testid="dashboard-hero-background"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[linear-gradient(90deg,#000_0%,rgba(0,0,0,0.94)_34%,rgba(0,0,0,0.38)_100%)]"
+        />
+        <div className="relative z-10 flex max-w-2xl flex-col items-start">
+          <div className="mb-5 inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-100">
+            <ShieldCheck className="mr-2 h-3.5 w-3.5 text-emerald-300" />
+            CMS service operations
+          </div>
+          <h1 id="dashboard-hero-title" className="text-2xl font-semibold tracking-normal text-white lg:text-3xl">
+            Dashboard
+          </h1>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-stone-200 lg:text-base">
+            Plan CMS site drafts, resolve domain dependencies, validate handoff readiness, and generate spec,
+            plan, and task bundles from one governed workspace.
           </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Button
+              asChild
+              className="border-white bg-white bg-none text-stone-950 hover:border-stone-100 hover:bg-stone-100 hover:text-stone-950 hover:opacity-100"
+            >
+              <Link href="/site-creation">
+                <FilePlus2 className="mr-2 h-4 w-4" />
+                Create CMS Site
+              </Link>
+            </Button>
+            <Button
+              asChild
+              className="border-white/25 bg-white/5 text-stone-100 hover:border-white/50 hover:bg-white/10 hover:text-white hover:opacity-100"
+              variant="secondary"
+            >
+              <Link href="/drafts">
+                <Layers3 className="mr-2 h-4 w-4" />
+                View Drafts
+              </Link>
+            </Button>
+          </div>
         </div>
-        <Button asChild>
-          <Link href="/site-creation">
-            <FilePlus2 className="mr-2 h-4 w-4" />
-            Create CMS Site
-          </Link>
-        </Button>
-      </div>
+      </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatusCard
