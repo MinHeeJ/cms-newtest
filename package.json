@@ -3,13 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "cms:dev": "npm run dev --workspace frontend",
+    "cms:api": "npm run dev --workspace backend",
+    "cms:build": "npm run build --workspace backend && npm run build --workspace frontend",
+    "cms:test": "npm run test --workspace backend && npm run test --workspace frontend",
+    "cms:lint": "npm run lint --workspace backend && npm run lint --workspace frontend"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

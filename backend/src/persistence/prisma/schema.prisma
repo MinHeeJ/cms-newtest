@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ContentStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContentType {
+  ARTICLE
+  PAGE
+}
+
+enum Visibility {
+  PUBLIC
+  UNLISTED
+  PRIVATE
+}
+
+enum ScheduleStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum TaxonomyType {
+  CATEGORY
+  TAG
+}
+
+enum NavigationTargetType {
+  CONTENT
+  URL
+  CATEGORY
+}
+
+enum RoleName {
+  ADMIN
+  EDITOR
+  AUTHOR
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum WorkflowEventType {
+  CREATE
+  UPDATE
+  SUBMIT
+  APPROVE
+  REJECT
+  PUBLISH
+  SCHEDULE
+  UNPUBLISH
+  ARCHIVE
+  DELETE
+  LOGIN
+  PERMISSION_CHANGE
+}
+
+model ContentItem {
+  id              String                @id @default(uuid()) @db.Uuid
+  contentType     ContentType
+  title           String                @db.VarChar(160)
+  slug            String                @unique
+  summary         String                @default("") @db.VarChar(300)
+  markdownBody    String
+  status          ContentStatus         @default(DRAFT)
+  visibility      Visibility            @default(PUBLIC)
+  authorId        String                @db.Uuid
+  editorId        String?               @db.Uuid
+  featuredMediaId String?               @db.Uuid
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  archivedAt      DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  author          User                  @relation("AuthoredContent", fields: [authorId], references: [id])
+  editor          User?                 @relation("EditedContent", fields: [editorId], references: [id])
+  featuredMedia   MediaAsset?           @relation("FeaturedMedia", fields: [featuredMediaId], references: [id])
+  revisions       ContentRevision[]
+  schedules       PublicationSchedule[]
+  categories      TaxonomyTerm[]        @relation("ContentCategories")
+  tags            TaxonomyTerm[]        @relation("ContentTags")
+  mediaAssets     MediaAsset[]          @relation("ContentMedia")
+
+  @@index([status, updatedAt])
+  @@index([contentType, status])
+  @@index([authorId, updatedAt])
+  @@index([publishedAt])
+  @@index([scheduledAt])
+  @@index([title])
+  @@index([slug])
+}
+
+model ContentRevision {
+  id                   String      @id @default(uuid()) @db.Uuid
+  contentItemId        String      @db.Uuid
+  revisionNumber       Int
+  titleSnapshot        String
+  metadataSnapshot     Json
+  markdownBodySnapshot String
+  changeSummary        String?
+  createdById          String      @db.Uuid
+  createdAt            DateTime    @default(now())
+  contentItem          ContentItem @relation(fields: [contentItemId], references: [id])
+  createdBy            User        @relation(fields: [createdById], references: [id])
+
+  @@unique([contentItemId, revisionNumber])
+  @@index([contentItemId, createdAt])
+}
+
+model PublicationSchedule {
+  id            String         @id @default(uuid()) @db.Uuid
+  contentItemId String         @db.Uuid
+  scheduledAt   DateTime
+  status        ScheduleStatus @default(PENDING)
+  requestedById String         @db.Uuid
+  executedAt    DateTime?
+  failureReason String?
+  createdAt     DateTime       @default(now())
+  contentItem   ContentItem    @relation(fields: [contentItemId], references: [id])
+  requestedBy   User           @relation(fields: [requestedById], references: [id])
+
+  @@index([status, scheduledAt])
+  @@index([contentItemId, status])
+}
+
+model MediaAsset {
+  id                String        @id @default(uuid()) @db.Uuid
+  fileName          String
+  mimeType          String
+  sizeBytes         Int
+  storageKey        String        @unique
+  publicUrl         String?
+  altText           String?
+  caption           String?
+  uploadedById      String        @db.Uuid
+  usageCount        Int           @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  uploadedBy        User          @relation(fields: [uploadedById], references: [id])
+  featuredInContent ContentItem[] @relation("FeaturedMedia")
+  contentItems      ContentItem[] @relation("ContentMedia")
+
+  @@index([mimeType])
+  @@index([usageCount])
+}
+
+model TaxonomyTerm {
+  id                  String         @id @default(uuid()) @db.Uuid
+  type                TaxonomyType
+  name                String
+  slug                String
+  description         String?
+  parentId            String?        @db.Uuid
+  sortOrder           Int?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  parent              TaxonomyTerm?  @relation("TaxonomyTree", fields: [parentId], references: [id])
+  children            TaxonomyTerm[] @relation("TaxonomyTree")
+  categorizedContent  ContentItem[]  @relation("ContentCategories")
+  taggedContent       ContentItem[]  @relation("ContentTags")
+
+  @@unique([type, slug])
+  @@index([type, parentId, sortOrder])
+}
+
+model NavigationMenu {
+  id        String           @id @default(uuid()) @db.Uuid
+  key       String           @unique
+  label     String
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  items     NavigationItem[]
+}
+
+model NavigationItem {
+  id               String               @id @default(uuid()) @db.Uuid
+  navigationMenuId String               @db.Uuid
+  label            String
+  targetType       NavigationTargetType
+  targetId         String?              @db.Uuid
+  url              String?
+  parentId         String?              @db.Uuid
+  sortOrder        Int
+  isVisible        Boolean              @default(true)
+  menu             NavigationMenu       @relation(fields: [navigationMenuId], references: [id])
+  parent           NavigationItem?      @relation("NavigationTree", fields: [parentId], references: [id])
+  children         NavigationItem[]     @relation("NavigationTree")
+
+  @@index([navigationMenuId, sortOrder])
+}
+
+model User {
+  id              String                @id @default(uuid()) @db.Uuid
+  email           String                @unique
+  displayName     String
+  status          UserStatus            @default(ACTIVE)
+  lastLoginAt     DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  roles           Role[]                @relation("UserRoles")
+  authoredContent ContentItem[]         @relation("AuthoredContent")
+  editedContent   ContentItem[]         @relation("EditedContent")
+  revisions       ContentRevision[]
+  schedules       PublicationSchedule[]
+  mediaAssets     MediaAsset[]
+  workflowEvents  WorkflowEvent[]       @relation("ActorEvents")
+  siteSettings    SiteSettings[]
+
+  @@index([status])
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        RoleName @unique
+  permissions String[]
+  description String?
+  users       User[]   @relation("UserRoles")
+}
+
+model WorkflowEvent {
+  id          String            @id @default(uuid()) @db.Uuid
+  eventType   WorkflowEventType
+  actorId     String            @db.Uuid
+  targetType  String
+  targetId    String            @db.Uuid
+  beforeState Json?
+  afterState  Json?
+  comment     String?
+  createdAt   DateTime          @default(now())
+  actor       User              @relation("ActorEvents", fields: [actorId], references: [id])
+
+  @@index([eventType, createdAt])
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+}
+
+model SiteSettings {
+  id                String       @id @default(uuid()) @db.Uuid
+  siteName          String
+  defaultTimezone   String       @default("UTC")
+  defaultLocale     String       @default("ko-KR")
+  homepageContentId String?      @db.Uuid
+  updatedById       String       @db.Uuid
+  updatedAt         DateTime     @updatedAt
+  updatedBy         User         @relation(fields: [updatedById], references: [id])
+}

@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --white: #fff;
+  --dark: #1c2536;
+  --primary: #5d87ff;
+  --secondary: #49beff;
+  --success: #13deb9;
+  --warning: #f6b51e;
+  --error: #ef4444;
+  --info: #8754ec;
+}
+
+html {
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #fff;
+  color: #1c2536;
+}
+
+.dark body {
+  background: #1c2536;
+  color: #fff;
+}
+
+.page-wrapper {
+  margin-left: 270px;
+  transition: all 0.2s ease-in;
+}
+
+@media (max-width: 1279px) {
+  .page-wrapper {
+    margin-left: 0;
+  }
+}
+
+.mobile-header-menu {
+  height: 0;
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.mobile-header-menu.active {
+  min-height: 70px;
+  overflow: visible;
+}
+
+.dropdown-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.dropdown-enter-active {
+  opacity: 1;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+  transform: translate(0);
+}
+
+.card-hover {
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover img {
+  transition: transform 0.2s;
+  transform: scale(1.09);
+}
+
+.card-title {
+  @apply text-lg font-semibold text-foreground dark:text-white;
+}
+
+.card-box {
+  @apply w-full rounded-lg border border-ld bg-white p-6 shadow-none dark:border-[#333f55] dark:bg-dark;
+}
+
+.form-control {
+  @apply flex h-10 w-full rounded-lg border border-ld bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#333f55] dark:text-white dark:placeholder:text-white/30;
+}
+
+.button-base {
+  @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-md px-5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:cursor-pointer;
+}
+
+input[type="checkbox"] {
+  @apply h-4 w-4 rounded border-ld text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+}
+
+.cms-preview h1 {
+  @apply mb-4 text-2xl font-semibold;
+}
+
+.cms-preview h2 {
+  @apply mb-3 mt-5 text-xl font-semibold;
+}
+
+.cms-preview p {
+  @apply mb-4 text-sm leading-7 text-slate-700 dark:text-white/80;
+}
+
+.cms-preview pre {
+  @apply mb-4 overflow-x-auto rounded-md bg-slate-900 p-4 text-sm text-white;
+}
+
+.cms-preview table {
+  @apply mb-4 w-full border-collapse text-sm;
+}
+
+.cms-preview th,
+.cms-preview td {
+  @apply border border-ld px-3 py-2 text-left dark:border-[#333f55];
+}

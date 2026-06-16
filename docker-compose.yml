@@ -1,22 +1,33 @@
 services:
-  web:
+  frontend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: frontend/Dockerfile
     environment:
-      DATABASE_URL: postgresql://cms:cms@postgres:5432/cms_site_creation
-      SITE_CREATION_DATA_FILE: /app/.data/site-creation.json
+      VITE_API_BASE_URL: http://backend:3000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://cms:cms@postgres:5432/cms
+      PORT: 3000
+      HOST: 0.0.0.0
+      STORAGE_BASE_URL: http://localhost:3000/uploads
     ports:
       - "3000:3000"
-    volumes:
-      - cms-site-data:/app/.data
     depends_on:
       - postgres
 
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: cms_site_creation
+      POSTGRES_DB: cms
       POSTGRES_USER: cms
       POSTGRES_PASSWORD: cms
     ports:
@@ -25,5 +36,4 @@ services:
       - cms-postgres-data:/var/lib/postgresql/data
 
 volumes:
-  cms-site-data:
   cms-postgres-data:
