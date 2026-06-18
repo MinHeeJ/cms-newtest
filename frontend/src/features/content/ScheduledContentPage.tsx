@@ -1,18 +1,30 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { StatusBadge } from "../../components/feedback/StatusBadge";
 import { DataTable } from "../../components/tables/DataTable";
-import { demoContent } from "../../services/demoData";
-import type { ContentItem } from "../../services/cmsTypes";
+import { LoadingPanel } from "../../components/feedback/UIState";
+import { contentApi } from "./content.api";
+import type { ContentListItem } from "../../services/cmsTypes";
 
 export function ScheduledContentPage() {
-  const rows = demoContent.filter((content) => content.status === "SCHEDULED");
+  const [rows, setRows] = useState<ContentListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    contentApi.list({ status: "SCHEDULED", pageSize: 50 })
+      .then((res) => setRows(res.items))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <LoadingPanel label="예약 콘텐츠 로딩 중" />;
+
   return (
     <section className="card-box">
       <div className="mb-6">
         <h1 className="card-title">예약 게시</h1>
         <p className="text-sm text-muted-foreground">예약 게시 예정 콘텐츠입니다.</p>
       </div>
-      <DataTable<ContentItem>
+      <DataTable<ContentListItem>
         rows={rows}
         getRowKey={(row) => row.id}
         emptyMessage="예약된 콘텐츠가 없습니다"

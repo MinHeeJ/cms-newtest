@@ -22,10 +22,10 @@ public class ContentService {
 
     @Transactional(readOnly=true)
     public Map<String,Object> list(String status, String type, String q, int page, int pageSize) {
-        Page<ContentItem> result = contentRepo.search(status, type, q,
-            PageRequest.of(page-1, pageSize, Sort.by("updatedAt").descending()));
+        Page<ContentItem> result = contentRepo.search(status, type,
+                PageRequest.of(page-1, pageSize, Sort.by("updatedAt").descending()));
         return mapper.paged(result.getContent().stream().map(mapper::contentList).collect(Collectors.toList()),
-            page, pageSize, result.getTotalElements());
+                page, pageSize, result.getTotalElements());
     }
 
     public Map<String,Object> create(Map<String,Object> input, CmsUser actor) {
@@ -53,11 +53,11 @@ public class ContentService {
         int nextRev = revisionRepo.countByContentItemId(id) + 1;
         item.setRevisionsCount(nextRev);
         ContentRevision rev = ContentRevision.builder()
-            .contentItemId(id).revisionNumber(nextRev)
-            .titleSnapshot(item.getTitle()).metadataSnapshot("{}")
-            .markdownBodySnapshot(item.getMarkdownBody())
-            .changeSummary((String) input.get("changeSummary"))
-            .createdBy(actor).build();
+                .contentItemId(id).revisionNumber(nextRev)
+                .titleSnapshot(item.getTitle()).metadataSnapshot("{}")
+                .markdownBodySnapshot(item.getMarkdownBody())
+                .changeSummary((String) input.get("changeSummary"))
+                .createdBy(actor).build();
         revisionRepo.save(rev);
         recordEvent("UPDATE", actor, id);
         return mapper.contentDetail(contentRepo.save(item));
@@ -88,7 +88,7 @@ public class ContentService {
         item.setStatus("SCHEDULED"); item.setScheduledAt(at); item.setUpdatedAt(Instant.now());
         contentRepo.save(item);
         PublicationSchedule sch = PublicationSchedule.builder()
-            .contentItemId(id).scheduledAt(at).status("PENDING").requestedBy(actor).build();
+                .contentItemId(id).scheduledAt(at).status("PENDING").requestedBy(actor).build();
         scheduleRepo.save(sch);
         recordEvent("SCHEDULE", actor, id);
         return Map.of("id", sch.getId(), "contentItemId", id, "scheduledAt", at, "status", "PENDING");
@@ -97,23 +97,23 @@ public class ContentService {
     @Transactional(readOnly=true)
     public List<Map<String,Object>> listRevisions(UUID id) {
         return revisionRepo.findByContentItemIdOrderByRevisionNumberDesc(id)
-            .stream().map(mapper::revision).collect(Collectors.toList());
+                .stream().map(mapper::revision).collect(Collectors.toList());
     }
 
     public Map<String,Object> restoreRevision(UUID contentId, UUID revisionId, CmsUser actor) {
         ContentItem item = findById(contentId);
         ContentRevision rev = revisionRepo.findById(revisionId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "revision not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "revision not found"));
         item.setTitle(rev.getTitleSnapshot());
         item.setMarkdownBody(rev.getMarkdownBodySnapshot());
         item.setUpdatedAt(Instant.now());
         item.setRevisionsCount(item.getRevisionsCount() + 1);
         revisionRepo.save(ContentRevision.builder()
-            .contentItemId(contentId).revisionNumber(item.getRevisionsCount())
-            .titleSnapshot(item.getTitle()).metadataSnapshot("{}")
-            .markdownBodySnapshot(item.getMarkdownBody())
-            .changeSummary("리비전 " + rev.getRevisionNumber() + "에서 복원")
-            .createdBy(actor).build());
+                .contentItemId(contentId).revisionNumber(item.getRevisionsCount())
+                .titleSnapshot(item.getTitle()).metadataSnapshot("{}")
+                .markdownBodySnapshot(item.getMarkdownBody())
+                .changeSummary("리비전 " + rev.getRevisionNumber() + "에서 복원")
+                .createdBy(actor).build());
         return mapper.contentDetail(contentRepo.save(item));
     }
 
@@ -157,6 +157,6 @@ public class ContentService {
 
     private void recordEvent(String type, CmsUser actor, UUID targetId) {
         eventRepo.save(WorkflowEvent.builder().eventType(type).actor(actor)
-            .targetType("CONTENT").targetId(targetId).build());
+                .targetType("CONTENT").targetId(targetId).build());
     }
 }

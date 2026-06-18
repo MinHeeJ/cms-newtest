@@ -13,6 +13,14 @@ public class NavigationMenu {
     @OneToMany(mappedBy="menu", cascade=CascadeType.ALL, orphanRemoval=true, fetch=FetchType.LAZY)
     @OrderBy("sortOrder ASC")
     private List<NavigationItem> items = new ArrayList<>();
-    @Column(name="created_at", updatable=false) private Instant createdAt = Instant.now();
-    @Column(name="updated_at") private Instant updatedAt = Instant.now();
+    @Column(name="created_at", nullable=false, updatable=false) private Instant createdAt;
+    @Column(name="updated_at", nullable=false) private Instant updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) createdAt = Instant.now();
+        if (updatedAt == null) updatedAt = Instant.now();
+    }
+    @PreUpdate
+    public void preUpdate() { updatedAt = Instant.now(); }
 }

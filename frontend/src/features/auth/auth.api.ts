@@ -6,18 +6,13 @@ export interface AuthSession {
   permissions: string[];
 }
 
-export interface LoginRequest {
-  email: string;
-}
-
 export function getSession(): Promise<AuthSession> {
   return apiClient<AuthSession>("/api/v1/auth/session");
 }
 
-export function login(request: LoginRequest): Promise<AuthSession> {
+export function login(request: { email: string }): Promise<AuthSession> {
   return apiClient<AuthSession>("/api/v1/auth/session", {
-    method: "POST",
-    body: request
+    headers: { "X-CMS-User": request.email }
   });
 }
 

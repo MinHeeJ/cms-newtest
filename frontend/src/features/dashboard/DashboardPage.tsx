@@ -1,18 +1,30 @@
 import { ArrowUpRight, CalendarClock, CheckCircle2, FileText, Layers3 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { DataTable } from "../../components/tables/DataTable";
-import { demoContent, demoMetrics } from "../../services/demoData";
 import { StatusBadge } from "../../components/feedback/StatusBadge";
-import type { ContentItem, WorkflowEvent } from "../../services/cmsTypes";
-
-const metricCards = [
-  { label: "게시", value: demoMetrics.contentCounts.published, tone: "bg-success/10 text-success", icon: CheckCircle2 },
-  { label: "초안", value: demoMetrics.contentCounts.draft, tone: "bg-info/10 text-info", icon: FileText },
-  { label: "검토", value: demoMetrics.contentCounts.inReview, tone: "bg-warning/10 text-warning", icon: Layers3 },
-  { label: "예약", value: demoMetrics.contentCounts.scheduled, tone: "bg-secondary/10 text-secondary", icon: CalendarClock }
-];
+import { LoadingPanel } from "../../components/feedback/UIState";
+import { dashboardApi } from "../../services/dashboardApi";
+import type { ContentListItem, DashboardMetrics, WorkflowEvent } from "../../services/cmsTypes";
 
 export function DashboardPage() {
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    dashboardApi.metrics().then(setMetrics).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <LoadingPanel label="대시보드 로딩 중" />;
+  if (!metrics) return <p className="text-sm text-muted-foreground">데이터를 불러오지 못했습니다.</p>;
+
+  const metricCards = [
+    { label: "게시", value: metrics.contentCounts.published, tone: "bg-success/10 text-success", icon: CheckCircle2 },
+    { label: "초안", value: metrics.contentCounts.draft, tone: "bg-info/10 text-info", icon: FileText },
+    { label: "검토", value: metrics.contentCounts.inReview, tone: "bg-warning/10 text-warning", icon: Layers3 },
+    { label: "예약", value: metrics.contentCounts.scheduled, tone: "bg-secondary/10 text-secondary", icon: CalendarClock }
+  ];
+
   return (
     <div className="grid grid-cols-12 gap-6">
       <section className="col-span-12">
@@ -24,11 +36,6 @@ export function DashboardPage() {
               <p className="text-sm text-muted-foreground">콘텐츠 운영 현황과 검토 작업을 한 화면에서 확인합니다.</p>
             </div>
           </div>
-          <select className="form-control max-w-44">
-            <option>최근 7일</option>
-            <option>최근 30일</option>
-            <option>이번 분기</option>
-          </select>
         </div>
       </section>
 
@@ -54,19 +61,18 @@ export function DashboardPage() {
       </section>
 
       <section className="col-span-12 flex lg:col-span-8">
-        <div className="card-box h-full">
+        <div className="card-box h-full w-full">
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h2 className="card-title">게시 추세</h2>
               <p className="text-sm text-muted-foreground">일자별 게시 완료 건수</p>
             </div>
             <NavLink className="button-base border border-primary bg-transparent text-primary hover:bg-primary hover:text-white" to="/audit">
-              감사 로그
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              감사 로그 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </NavLink>
           </div>
           <div className="flex h-[316px] items-end gap-4 border-b border-ld pb-4 dark:border-[#333f55]">
-            {demoMetrics.publishingTrend.map((point) => (
+            {metrics.publishingTrend.map((point) => (
               <div key={point.date} className="flex flex-1 flex-col items-center gap-2">
                 <div className="w-full rounded-t-md bg-primary" style={{ height: `${Math.max(28, point.publishedCount * 34)}px` }} />
                 <span className="text-xs text-muted-foreground">{point.date.slice(5)}</span>
@@ -79,31 +85,14 @@ export function DashboardPage() {
       <section className="col-span-12 lg:col-span-4">
         <div className="card-box h-full">
           <h2 className="card-title">검토 대기</h2>
-          <p className="text-sm text-muted-foreground">검토 대기 콘텐츠</p>
           <div className="mt-6 space-y-4">
-            {demoContent.filter((content) => content.status === "IN_REVIEW").map((content) => (
-              <QueueItem key={content.id} content={content} />
+            {metrics.recentActivity.filter((e) => e.eventType === "SUBMIT").slice(0, 5).map((event) => (
+              <NavLink key={event.id} className="block rounded-md border border-ld p-4 transition-colors hover:bg-primary/10 dark:border-[#333f55]" to="/review">
+                <p className="text-sm font-semibold text-foreground dark:text-white">{event.targetId}</p>
+                <p className="text-xs text-muted-foreground">{event.actor.displayName} · {new Date(event.createdAt).toLocaleString("ko-KR")}</p>
+              </NavLink>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="col-span-12 flex lg:col-span-8">
-        <div className="card-box">
-          <div className="mb-6">
-            <h2 className="card-title">최근 콘텐츠</h2>
-            <p className="text-sm text-muted-foreground">최근 수정된 콘텐츠</p>
-          </div>
-          <DataTable<ContentItem>
-            rows={demoContent}
-            getRowKey={(row) => row.id}
-            columns={[
-              { key: "title", header: "제목", render: (row) => <span className="font-semibold">{row.title}</span> },
-              { key: "status", header: "상태", render: (row) => <StatusBadge status={row.status} /> },
-              { key: "author", header: "작성자", render: (row) => row.author.displayName },
-              { key: "updatedAt", header: "수정일", render: (row) => new Date(row.updatedAt).toLocaleDateString("ko-KR") }
-            ]}
-          />
         </div>
       </section>
 
@@ -111,25 +100,13 @@ export function DashboardPage() {
         <div className="card-box h-full">
           <h2 className="card-title">최근 활동</h2>
           <div className="mt-6">
-            {demoMetrics.recentActivity.map((event) => (
+            {metrics.recentActivity.map((event) => (
               <TimelineEvent key={event.id} event={event} />
             ))}
           </div>
         </div>
       </section>
     </div>
-  );
-}
-
-function QueueItem({ content }: { content: ContentItem }) {
-  return (
-    <NavLink className="block rounded-md border border-ld p-4 transition-colors hover:bg-primary/10 dark:border-[#333f55]" to="/review">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-foreground dark:text-white">{content.title}</p>
-        <StatusBadge status={content.status} />
-      </div>
-      <p className="text-xs text-muted-foreground">{content.author.displayName} · {new Date(content.updatedAt).toLocaleString("ko-KR")}</p>
-    </NavLink>
   );
 }
 

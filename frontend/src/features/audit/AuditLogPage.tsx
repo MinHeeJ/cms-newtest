@@ -1,9 +1,23 @@
 import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import { DataTable } from "../../components/tables/DataTable";
-import { demoEvents } from "../../services/demoData";
+import { LoadingPanel } from "../../components/feedback/UIState";
+import { auditApi } from "../../services/auditApi";
 import type { WorkflowEvent } from "../../services/cmsTypes";
 
 export function AuditLogPage() {
+  const [events, setEvents] = useState<WorkflowEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [targetType, setTargetType] = useState("");
+
+  useEffect(() => {
+    auditApi.list({ targetType: targetType || undefined, pageSize: 50 })
+      .then((res) => setEvents(res.items))
+      .finally(() => setLoading(false));
+  }, [targetType]);
+
+  if (loading) return <LoadingPanel label="감사 로그 로딩 중" />;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -12,15 +26,14 @@ export function AuditLogPage() {
       </div>
       <section className="card-box">
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <input className="form-control min-w-full pl-10 lg:min-w-96" placeholder="행위자 또는 대상 검색" />
-          </div>
-          <select className="form-control max-w-56"><option>전체 이벤트</option><option>PUBLISH</option><option>PERMISSION_CHANGE</option></select>
-          <input className="form-control max-w-56" type="date" />
+          <select className="form-control max-w-56" value={targetType} onChange={(e) => setTargetType(e.target.value)}>
+            <option value="">전체 대상</option>
+            <option value="CONTENT">CONTENT</option>
+            <option value="USER">USER</option>
+          </select>
         </div>
         <DataTable<WorkflowEvent>
-          rows={demoEvents}
+          rows={events}
           getRowKey={(row) => row.id}
           emptyMessage="감사 이벤트가 없습니다"
           emptyDescription="기간 필터를 넓히거나 이벤트 유형을 전체로 변경하세요."

@@ -13,5 +13,10 @@ public class PublicationSchedule {
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="requested_by", nullable=false) private CmsUser requestedBy;
     @Column(name="executed_at") private Instant executedAt;
     @Column(name="failure_reason") private String failureReason;
-    @Column(name="created_at", updatable=false) private Instant createdAt = Instant.now();
+    @Column(name="created_at", nullable=false, updatable=false) private Instant createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) createdAt = Instant.now();
+    }
 }

@@ -12,7 +12,7 @@ export function SettingsPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
             <label className="mb-2 block text-sm font-medium text-foreground dark:text-white" htmlFor="site-name">사이트명</label>
-            <input id="site-name" className="form-control" defaultValue="Basic CMS" />
+            <input id="site-name" className="form-control" defaultValue="CMS" />
             <p className="mt-2 text-xs text-muted-foreground">브라우저 제목과 공개 헤더에 사용됩니다.</p>
           </div>
           <div>

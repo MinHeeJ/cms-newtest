@@ -14,8 +14,6 @@ export default defineConfig({
   },
   preview: {
     port: 5188,
-    host: "0.0.0.0",
-    cors: true,
-    allowedHosts: true
+    host: "0.0.0.0"
   }
 });

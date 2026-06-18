@@ -11,37 +11,47 @@ export interface ContentPayload {
   featuredMediaId?: string | null;
   categoryIds?: string[];
   tagIds?: string[];
+  changeSummary?: string;
 }
 
 export const contentApi = {
   list(query: Record<string, string | number | undefined>) {
     return apiClient<Paged<ContentListItem>>("/api/v1/content", { query });
   },
+  get(id: string) {
+    return apiClient<ContentItem>(`/api/v1/content/${id}`);
+  },
   create(payload: ContentPayload) {
     return apiClient<ContentItem>("/api/v1/content", { method: "POST", body: payload });
   },
-  update(contentId: string, payload: ContentPayload & { expectedRevision?: number; changeSummary?: string }) {
-    return apiClient<ContentItem>(`/api/v1/content/${contentId}`, { method: "PATCH", body: payload });
+  update(id: string, payload: ContentPayload) {
+    return apiClient<ContentItem>(`/api/v1/content/${id}`, { method: "PATCH", body: payload });
   },
-  preview(contentId: string, payload: { title?: string; summary?: string; markdownBody?: string }) {
-    return apiClient<{ html: string; warnings: string[] }>(`/api/v1/content/${contentId}/preview`, { method: "POST", body: payload });
+  preview(id: string, payload: { title?: string; summary?: string; markdownBody?: string }) {
+    return apiClient<{ html: string; warnings?: string[] }>(`/api/v1/content/${id}/preview`, { method: "POST", body: payload });
   },
-  submit(contentId: string) {
-    return apiClient<ContentItem>(`/api/v1/content/${contentId}/submit`, { method: "POST" });
+  submit(id: string) {
+    return apiClient<ContentItem>(`/api/v1/content/${id}/submit`, { method: "POST" });
   },
-  review(contentId: string, payload: { decision: "APPROVE" | "REJECT"; comment?: string }) {
-    return apiClient<ContentItem>(`/api/v1/content/${contentId}/review`, { method: "POST", body: payload });
+  review(id: string, payload: { decision: "APPROVE" | "REJECT"; comment?: string }) {
+    return apiClient<ContentItem>(`/api/v1/content/${id}/review`, { method: "POST", body: payload });
   },
-  publish(contentId: string) {
-    return apiClient<ContentItem>(`/api/v1/content/${contentId}/publish`, { method: "POST", body: { confirm: true } });
+  publish(id: string) {
+    return apiClient<ContentItem>(`/api/v1/content/${id}/publish`, { method: "POST" });
   },
-  schedule(contentId: string, payload: { scheduledAt: string; timezone?: string }) {
-    return apiClient<PublicationSchedule>(`/api/v1/content/${contentId}/schedule`, { method: "POST", body: payload });
+  schedule(id: string, payload: { scheduledAt: string }) {
+    return apiClient<PublicationSchedule>(`/api/v1/content/${id}/schedule`, { method: "POST", body: payload });
   },
-  revisions(contentId: string) {
-    return apiClient<ContentRevision[]>(`/api/v1/content/${contentId}/revisions`);
+  unpublish(id: string) {
+    return apiClient<ContentItem>(`/api/v1/content/${id}/unpublish`, { method: "POST" });
   },
-  restore(contentId: string, revisionId: string) {
-    return apiClient<ContentItem>(`/api/v1/content/${contentId}/revisions/${revisionId}/restore`, { method: "POST" });
+  archive(id: string) {
+    return apiClient<ContentItem>(`/api/v1/content/${id}/archive`, { method: "POST" });
+  },
+  revisions(id: string) {
+    return apiClient<ContentRevision[]>(`/api/v1/content/${id}/revisions`);
+  },
+  restore(id: string, revisionId: string) {
+    return apiClient<ContentItem>(`/api/v1/content/${id}/revisions/${revisionId}/restore`, { method: "POST" });
   }
 };

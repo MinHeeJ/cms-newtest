@@ -15,19 +15,7 @@ import { TaxonomyManagerPage } from "../features/taxonomy/TaxonomyManagerPage";
 import { UserRoleManagerPage } from "../features/users/UserRoleManagerPage";
 import type { RoleName } from "../services/cmsTypes";
 
-export type NavigationIcon =
-  | "dashboard"
-  | "content"
-  | "editor"
-  | "review"
-  | "revision"
-  | "media"
-  | "taxonomy"
-  | "navigation"
-  | "users"
-  | "audit"
-  | "settings"
-  | "boxes";
+export type NavigationIcon = "dashboard" | "content" | "editor" | "review" | "revision" | "media" | "taxonomy" | "navigation" | "users" | "audit" | "settings" | "boxes";
 
 export interface NavigationItemConfig {
   label: string;
@@ -37,10 +25,7 @@ export interface NavigationItemConfig {
 }
 
 export const navigationGroups: Array<{ label: string; items: NavigationItemConfig[] }> = [
-  {
-    label: "Home",
-    items: [{ label: "Dashboard", path: "/", icon: "dashboard", roles: ["ADMIN", "EDITOR", "VIEWER"] }]
-  },
+  { label: "Home", items: [{ label: "Dashboard", path: "/", icon: "dashboard", roles: ["ADMIN", "EDITOR", "VIEWER"] }] },
   {
     label: "Content",
     items: [
@@ -69,6 +54,7 @@ export const appRoutes: RouteObject[] = [
   { path: "/", element: <DashboardPage /> },
   { path: "/content", element: <ContentListPage /> },
   { path: "/content/new", element: <ContentEditorPage /> },
+  { path: "/content/:contentId/edit", element: <ContentEditorPage /> },
   { path: "/content/:contentId/revisions", element: <RevisionHistoryPage /> },
   { path: "/revisions", element: <RevisionHistoryPage /> },
   { path: "/review", element: <ReviewQueuePage /> },

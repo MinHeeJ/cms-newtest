@@ -1,31 +1,50 @@
 import { RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { ConfirmDialog } from "../../components/feedback/ConfirmDialog";
 import { DataTable } from "../../components/tables/DataTable";
-import { demoRevisions } from "../../services/demoData";
+import { LoadingPanel } from "../../components/feedback/UIState";
+import { contentApi } from "./content.api";
 import type { ContentRevision } from "../../services/cmsTypes";
 
 export function RevisionHistoryPage() {
-  const [selected, setSelected] = useState<ContentRevision | null>(demoRevisions[0]);
+  const { contentId } = useParams<{ contentId: string }>();
+  const [revisions, setRevisions] = useState<ContentRevision[]>([]);
+  const [selected, setSelected] = useState<ContentRevision | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!contentId) { setLoading(false); return; }
+    contentApi.revisions(contentId)
+      .then((r) => { setRevisions(r); setSelected(r[0] ?? null); })
+      .finally(() => setLoading(false));
+  }, [contentId]);
+
+  async function handleRestore() {
+    if (!contentId || !selected) return;
+    await contentApi.restore(contentId, selected.id);
+    setConfirmOpen(false);
+  }
+
+  if (loading) return <LoadingPanel label="리비전 로딩 중" />;
 
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-md border-none bg-lightsecondary py-4 shadow-none">
-        <div className="grid grid-cols-12 items-center gap-6 px-6">
-          <div className="col-span-12 md:col-span-10">
-            <h1 className="mb-3 text-xl font-semibold text-foreground dark:text-white">Revision 이력</h1>
-            <p className="text-sm text-muted-foreground">이전 revision을 비교하고 새 초안으로 복원합니다.</p>
-          </div>
+        <div className="px-6">
+          <h1 className="mb-3 text-xl font-semibold text-foreground dark:text-white">Revision 이력</h1>
+          <p className="text-sm text-muted-foreground">이전 revision을 비교하고 새 초안으로 복원합니다.</p>
         </div>
       </div>
-
       <div className="grid grid-cols-12 gap-6">
         <section className="col-span-12 lg:col-span-7">
           <div className="card-box">
             <DataTable<ContentRevision>
-              rows={demoRevisions}
+              rows={revisions}
               getRowKey={(row) => row.id}
+              emptyMessage="리비전이 없습니다"
+              emptyDescription="콘텐츠를 수정하면 리비전이 생성됩니다."
               columns={[
                 { key: "number", header: "Revision", render: (row) => <button className="font-semibold text-primary" type="button" onClick={() => setSelected(row)}>#{row.revisionNumber}</button> },
                 { key: "title", header: "Title", render: (row) => row.titleSnapshot },
@@ -46,23 +65,14 @@ export function RevisionHistoryPage() {
                 </div>
                 <pre className="max-h-[360px] overflow-y-auto rounded-md bg-slate-900 p-4 text-sm leading-7 text-white">{selected.markdownBodySnapshot}</pre>
                 <button className="button-base bg-primary text-white hover:bg-primaryemphasis" type="button" onClick={() => setConfirmOpen(true)}>
-                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                  초안으로 복원
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />초안으로 복원
                 </button>
               </div>
             ) : null}
           </div>
         </section>
       </div>
-
-      <ConfirmDialog
-        open={confirmOpen}
-        title="이 revision을 복원할까요?"
-        description="기존 콘텐츠를 덮어쓰지 않고 새 DRAFT revision으로 저장합니다."
-        confirmLabel="복원"
-        onCancel={() => setConfirmOpen(false)}
-        onConfirm={() => setConfirmOpen(false)}
-      />
+      <ConfirmDialog open={confirmOpen} title="이 revision을 복원할까요?" description="새 DRAFT revision으로 저장합니다." confirmLabel="복원" onCancel={() => setConfirmOpen(false)} onConfirm={handleRestore} />
     </div>
   );
 }

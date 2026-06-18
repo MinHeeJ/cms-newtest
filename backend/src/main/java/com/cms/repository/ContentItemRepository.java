@@ -7,12 +7,11 @@ import java.util.*;
 public interface ContentItemRepository extends JpaRepository<ContentItem, UUID> {
     boolean existsBySlug(String slug);
     long countByStatus(String status);
+
     @Query("SELECT c FROM ContentItem c WHERE " +
-           "(:status IS NULL OR c.status = :status) AND " +
-           "(:type IS NULL OR c.contentType = :type) AND " +
-           "(:q IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%',:q,'%')))")
+            "(:status IS NULL OR c.status = :status) AND " +
+            "(:type IS NULL OR c.contentType = :type)")
     Page<ContentItem> search(@Param("status") String status,
                              @Param("type") String type,
-                             @Param("q") String q,
                              Pageable pageable);
 }

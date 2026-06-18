@@ -20,8 +20,17 @@ public class ContentItem {
     @Column(name="published_at") private Instant publishedAt;
     @Column(name="scheduled_at") private Instant scheduledAt;
     @Column(name="archived_at") private Instant archivedAt;
-    @Column(name="created_at", updatable=false) private Instant createdAt = Instant.now();
-    @Column(name="updated_at") private Instant updatedAt = Instant.now();
+    @Column(name="created_at", nullable=false, updatable=false) private Instant createdAt;
+    @Column(name="updated_at", nullable=false) private Instant updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) createdAt = Instant.now();
+        if (updatedAt == null) updatedAt = Instant.now();
+    }
+    @PreUpdate
+    public void preUpdate() { updatedAt = Instant.now(); }
+
     @ManyToMany(fetch=FetchType.LAZY)
     @JoinTable(name="cms_content_categories", joinColumns=@JoinColumn(name="content_id"), inverseJoinColumns=@JoinColumn(name="term_id"))
     private List<TaxonomyTerm> categories = new ArrayList<>();

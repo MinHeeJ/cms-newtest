@@ -14,5 +14,10 @@ public class ContentRevision {
     @Column(name="markdown_body_snapshot", nullable=false, columnDefinition="TEXT") private String markdownBodySnapshot;
     @Column(name="change_summary") private String changeSummary;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="created_by", nullable=false) private CmsUser createdBy;
-    @Column(name="created_at", updatable=false) private Instant createdAt = Instant.now();
+    @Column(name="created_at", nullable=false, updatable=false) private Instant createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) createdAt = Instant.now();
+    }
 }

@@ -15,6 +15,14 @@ public class MediaAsset {
     private String caption;
     @Column(name="usage_count") private Integer usageCount = 0;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="uploaded_by", nullable=false) private CmsUser uploadedBy;
-    @Column(name="created_at", updatable=false) private Instant createdAt = Instant.now();
-    @Column(name="updated_at") private Instant updatedAt = Instant.now();
+    @Column(name="created_at", nullable=false, updatable=false) private Instant createdAt;
+    @Column(name="updated_at", nullable=false) private Instant updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) createdAt = Instant.now();
+        if (updatedAt == null) updatedAt = Instant.now();
+    }
+    @PreUpdate
+    public void preUpdate() { updatedAt = Instant.now(); }
 }
