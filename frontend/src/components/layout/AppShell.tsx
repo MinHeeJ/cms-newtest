@@ -24,6 +24,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { navigationGroups } from "../../app/routes";
 import { useAuth } from "../../features/auth/AuthContext";
+import cmsLogo from "../../assets/cms-logo.svg";
 
 const iconMap = {
   dashboard: Gauge,
@@ -82,12 +83,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
               <div className="hidden items-center gap-2 xl:flex">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                  <input className="form-control w-96 pl-10" placeholder="콘텐츠 검색..." type="search" />
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                  <input className="form-control form-control-with-leading-icon w-96" placeholder="콘텐츠 검색..." type="search" />
                 </div>
               </div>
-              <NavLink className="block text-base font-semibold text-primary xl:hidden" to="/">
-                CMS
+              <NavLink className="block xl:hidden" to="/" aria-label="CMS 홈">
+                <img className="h-9 w-auto" src={cmsLogo} alt="CMS" />
               </NavLink>
               <div className="flex items-center gap-2">
                 <button className="group relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-foreground hover:text-primary dark:text-white/70" type="button" onClick={() => setDarkMode((value) => !value)} aria-label="테마 전환">
@@ -128,8 +129,8 @@ function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   return (
     <aside className="fixed left-0 top-0 z-10 h-screen w-[270px] border border-border bg-sidebar dark:border-[#333f55] dark:bg-dark">
       <div className="flex h-[74px] items-center overflow-hidden px-6">
-        <NavLink className="text-xl font-semibold text-primary" to="/" onClick={onNavigate}>
-          CMS
+        <NavLink className="block" to="/" onClick={onNavigate} aria-label="CMS 홈">
+          <img className="h-10 w-auto" src={cmsLogo} alt="CMS" />
         </NavLink>
       </div>
       <div className="h-[calc(100vh-100px)] overflow-y-auto px-6 pb-6">

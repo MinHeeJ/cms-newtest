@@ -35,8 +35,8 @@ export function MediaLibraryPage() {
       <section className="card-box">
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <input className="form-control pl-10" placeholder="파일명 또는 altText 검색" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <input className="form-control form-control-with-leading-icon" placeholder="파일명 또는 altText 검색" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
         </div>
         {filtered.length === 0 ? (
