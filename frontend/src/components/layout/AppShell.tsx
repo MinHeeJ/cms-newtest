@@ -84,7 +84,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
               </div>
               <NavLink className="block text-base font-semibold text-primary xl:hidden" to="/">
-                Hermes CMS
+                Basic CMS
               </NavLink>
               <div className="flex items-center gap-2">
                 <button className="group relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-foreground hover:text-primary dark:text-white/70" type="button" onClick={() => setDarkMode((value) => !value)} aria-label="테마 전환">
@@ -116,7 +116,7 @@ function Sidebar({ onNavigate }: { onNavigate: () => void }) {
     <aside className="fixed left-0 top-0 z-10 h-screen w-[270px] border border-border bg-sidebar dark:border-[#333f55] dark:bg-dark">
       <div className="flex h-[74px] items-center overflow-hidden px-6">
         <NavLink className="text-xl font-semibold text-primary" to="/" onClick={onNavigate}>
-          Hermes CMS
+          Basic CMS
         </NavLink>
       </div>
       <div className="h-[calc(100vh-100px)] overflow-y-auto px-6 pb-6">

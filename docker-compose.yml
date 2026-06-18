@@ -1,29 +1,4 @@
 services:
-  frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-    environment:
-      VITE_API_BASE_URL: http://backend:3000
-    ports:
-      - "5173:5173"
-    depends_on:
-      - backend
-
-  backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-    environment:
-      DATABASE_URL: postgresql://cms:cms@postgres:5432/cms
-      PORT: 3000
-      HOST: 0.0.0.0
-      STORAGE_BASE_URL: http://localhost:3000/uploads
-    ports:
-      - "3000:3000"
-    depends_on:
-      - postgres
-
   postgres:
     image: postgres:16-alpine
     environment:
@@ -31,9 +6,44 @@ services:
       POSTGRES_USER: cms
       POSTGRES_PASSWORD: cms
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - cms-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cms -d cms"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/cms
+      DB_USER: cms
+      DB_PASSWORD: cms
+      PORT: 8085
+      CORS_ORIGIN: http://localhost:5188,http://frontend:5188
+      STORAGE_BASE_URL: http://localhost:8085/uploads
+    ports:
+      - "8085:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure:5
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://backend:8085
+    ports:
+      - "5188:5188"
+    depends_on:
+      - backend
 
 volumes:
   cms-postgres-data:

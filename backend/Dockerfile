@@ -1,24 +1,14 @@
-FROM node:22-alpine AS deps
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /app
-COPY package.json package-lock.json* ./
-COPY backend/package.json backend/package.json
-RUN npm install --workspace backend
+COPY pom.xml .
+RUN mvn dependency:go-offline -q
+COPY src ./src
+RUN mvn package -DskipTests -q
 
-FROM node:22-alpine AS builder
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/backend/node_modules ./backend/node_modules
-COPY backend ./backend
-WORKDIR /app/backend
-RUN npm run build
-
-FROM node:22-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-ENV PORT=3000
-COPY --from=builder /app/backend/package.json ./package.json
-COPY --from=builder /app/backend/dist ./dist
-COPY --from=builder /app/backend/src/persistence/prisma ./src/persistence/prisma
-COPY --from=builder /app/backend/node_modules ./node_modules
-EXPOSE 3000
-CMD ["node", "dist/server.js"]
+RUN addgroup -S cms && adduser -S cms -G cms
+COPY --from=builder /app/target/*.jar app.jar
+USER cms
+EXPOSE 8085
+ENTRYPOINT ["java", "-jar", "app.jar"]
