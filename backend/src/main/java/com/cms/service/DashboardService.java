@@ -20,9 +20,14 @@ public class DashboardService {
         counts.put("archived",  contentRepo.countByStatus("ARCHIVED"));
         List<Map<String,Object>> recent = eventRepo.findTop8ByOrderByCreatedAtDesc()
             .stream().map(mapper::event).collect(Collectors.toList());
+        List<Map<String,Object>> publishingTrend = contentRepo.findPublishingTrendSince().stream()
+            .map(row -> Map.<String,Object>of(
+                "date", row.getDate().toString(),
+                "publishedCount", row.getPublishedCount()))
+            .collect(Collectors.toList());
         return Map.of("contentCounts", counts,
             "reviewQueueCount", counts.get("inReview"),
             "scheduledCount", counts.get("scheduled"),
-            "recentActivity", recent, "publishingTrend", List.of());
+            "recentActivity", recent, "publishingTrend", publishingTrend);
     }
 }

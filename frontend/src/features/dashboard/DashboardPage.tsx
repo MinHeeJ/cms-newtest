@@ -1,11 +1,58 @@
-import { ArrowUpRight, CalendarClock, CheckCircle2, FileText, Layers3 } from "lucide-react";
+import { ArrowUpRight, CalendarClock, CalendarDays, CheckCircle2, FileText, Layers3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { DataTable } from "../../components/tables/DataTable";
-import { StatusBadge } from "../../components/feedback/StatusBadge";
 import { LoadingPanel } from "../../components/feedback/UIState";
 import { dashboardApi } from "../../services/dashboardApi";
-import type { ContentListItem, DashboardMetrics, WorkflowEvent } from "../../services/cmsTypes";
+import type { DashboardMetrics, WorkflowEvent } from "../../services/cmsTypes";
+
+type PublishingTrendPoint = DashboardMetrics["publishingTrend"][number];
+
+interface PublishingCalendarCell {
+  date: string;
+  day: number;
+  publishedCount: number;
+  inMonth: boolean;
+}
+
+export function buildPublishingCalendar(points: PublishingTrendPoint[]) {
+  const sortedPoints = [...points].sort((a, b) => a.date.localeCompare(b.date));
+  const anchorDate = sortedPoints[sortedPoints.length - 1]?.date ?? new Date().toISOString().slice(0, 10);
+  const [year, month] = anchorDate.split("-").map(Number);
+  const monthIndex = month - 1;
+  const firstOfMonth = new Date(Date.UTC(year, monthIndex, 1));
+  const firstGridDate = new Date(firstOfMonth);
+  firstGridDate.setUTCDate(firstOfMonth.getUTCDate() - firstOfMonth.getUTCDay());
+  const lastOfMonth = new Date(Date.UTC(year, month, 0));
+  const totalCells = Math.ceil((firstOfMonth.getUTCDay() + lastOfMonth.getUTCDate()) / 7) * 7;
+  const countsByDate = new Map(sortedPoints.map((point) => [point.date, point.publishedCount]));
+  const cells: PublishingCalendarCell[] = Array.from({ length: totalCells }, (_, index) => {
+    const date = new Date(firstGridDate);
+    date.setUTCDate(firstGridDate.getUTCDate() + index);
+    const isoDate = date.toISOString().slice(0, 10);
+
+    return {
+      date: isoDate,
+      day: date.getUTCDate(),
+      publishedCount: countsByDate.get(isoDate) ?? 0,
+      inMonth: date.getUTCMonth() === monthIndex
+    };
+  });
+
+  return {
+    monthLabel: `${year}년 ${month}월`,
+    weekdays: ["일", "월", "화", "수", "목", "금", "토"],
+    maxPublishedCount: Math.max(0, ...points.map((point) => point.publishedCount)),
+    cells
+  };
+}
+
+export function calendarCellTone(publishedCount: number, maxPublishedCount: number) {
+  if (publishedCount <= 0 || maxPublishedCount <= 0) return "bg-slate-50 text-muted-foreground dark:bg-slate-900/40";
+  const intensity = publishedCount / maxPublishedCount;
+  if (intensity >= 0.85) return "bg-primary/70 text-white ring-1 ring-primary/70";
+  if (intensity >= 0.5) return "bg-primary/30 text-primary dark:text-white";
+  return "bg-primary/10 text-primary dark:text-white";
+}
 
 export function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -24,6 +71,7 @@ export function DashboardPage() {
     { label: "검토", value: metrics.contentCounts.inReview, tone: "bg-warning/10 text-warning", icon: Layers3 },
     { label: "예약", value: metrics.contentCounts.scheduled, tone: "bg-secondary/10 text-secondary", icon: CalendarClock }
   ];
+  const publishingCalendar = buildPublishingCalendar(metrics.publishingTrend);
 
   return (
     <div className="grid grid-cols-12 gap-6">
@@ -62,22 +110,48 @@ export function DashboardPage() {
 
       <section className="col-span-12 flex lg:col-span-8">
         <div className="card-box h-full w-full">
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex items-center justify-between gap-4">
             <div>
-              <h2 className="card-title">게시 추세</h2>
-              <p className="text-sm text-muted-foreground">일자별 게시 완료 건수</p>
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-5 w-5 text-primary" aria-hidden="true" />
+                <h2 className="card-title">게시 추세</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">날짜별 콘텐츠 등록 건수와 게시 밀도</p>
             </div>
             <NavLink className="button-base border border-primary bg-transparent text-primary hover:bg-primary hover:text-white" to="/audit">
               감사 로그 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </NavLink>
           </div>
-          <div className="flex h-[316px] items-end gap-4 border-b border-ld pb-4 dark:border-[#333f55]">
-            {metrics.publishingTrend.map((point) => (
-              <div key={point.date} className="flex flex-1 flex-col items-center gap-2">
-                <div className="w-full rounded-t-md bg-primary" style={{ height: `${Math.max(28, point.publishedCount * 34)}px` }} />
-                <span className="text-xs text-muted-foreground">{point.date.slice(5)}</span>
+          <div className="rounded-lg border border-ld bg-white/60 p-4 dark:border-[#333f55] dark:bg-transparent" aria-label="날짜별 콘텐츠 등록 현황 캘린더">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-sm font-semibold text-foreground dark:text-white">{publishingCalendar.monthLabel}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground" aria-hidden="true">
+                <span>적음</span>
+                {[0, 1, 3, 6].map((count) => (
+                  <span key={count} className={`h-3 w-3 rounded-sm ${calendarCellTone(count, 6)}`} />
+                ))}
+                <span>많음</span>
               </div>
-            ))}
+            </div>
+            <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold text-muted-foreground">
+              {publishingCalendar.weekdays.map((weekday) => (
+                <span key={weekday}>{weekday}</span>
+              ))}
+            </div>
+            <div className="mt-2 grid grid-cols-7 gap-2">
+              {publishingCalendar.cells.map((cell) => (
+                <div
+                  key={cell.date}
+                  className={`min-h-[54px] rounded-md border border-transparent p-2 transition-colors ${calendarCellTone(cell.publishedCount, publishingCalendar.maxPublishedCount)} ${cell.inMonth ? "" : "opacity-35"}`}
+                  aria-label={`${cell.date} 게시 ${cell.publishedCount}건`}
+                >
+                  <div className="flex h-full flex-col justify-between gap-1">
+                    <span className="text-[11px] font-medium">{cell.day}</span>
+                    <span className="text-right text-sm font-bold tabular-nums">{cell.publishedCount}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
