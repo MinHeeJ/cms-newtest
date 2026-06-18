@@ -33,6 +33,10 @@ public class ApiController {
         CmsUser u = user(req);
         return Map.of("user", mapper.user(u), "permissions", permissionService.getPermissions(u));
     }
+    @PostMapping("/api/v1/auth/register")
+    public ResponseEntity<Map<String,Object>> register(@RequestBody Map<String,Object> body) {
+        return ResponseEntity.status(201).body(userService.register(body));
+    }
     @DeleteMapping("/api/v1/auth/session")
     public ResponseEntity<Void> logout() { return ResponseEntity.noContent().build(); }
 

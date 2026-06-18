@@ -1,6 +1,7 @@
 import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import { AuditLogPage } from "../features/audit/AuditLogPage";
+import { RegisterPage } from "../features/auth/RegisterPage";
 import { ContentEditorPage } from "../features/content/ContentEditorPage";
 import { ContentListPage } from "../features/content/ContentListPage";
 import { ReviewQueuePage } from "../features/content/ReviewQueuePage";
@@ -26,6 +27,7 @@ export type NavigationIcon =
   | "users"
   | "audit"
   | "settings"
+  | "register"
   | "boxes";
 
 export interface NavigationItemConfig {
@@ -38,7 +40,10 @@ export interface NavigationItemConfig {
 export const navigationGroups: Array<{ label: string; items: NavigationItemConfig[] }> = [
   {
     label: "Home",
-    items: [{ label: "Dashboard", path: "/", icon: "dashboard", roles: ["ADMIN", "EDITOR", "VIEWER"] }]
+    items: [
+      { label: "Dashboard", path: "/", icon: "dashboard", roles: ["ADMIN", "EDITOR", "VIEWER"] },
+      { label: "회원가입", path: "/register", icon: "register", roles: ["ADMIN"] }
+    ]
   },
   {
     label: "Content",
@@ -65,6 +70,7 @@ export const navigationGroups: Array<{ label: string; items: NavigationItemConfi
 
 export const appRoutes: RouteObject[] = [
   { path: "/", element: <DashboardPage /> },
+  { path: "/register", element: <RegisterPage /> },
   { path: "/content", element: <ContentListPage /> },
   { path: "/content/new", element: <ContentEditorPage /> },
   { path: "/content/:contentId/revisions", element: <RevisionHistoryPage /> },
