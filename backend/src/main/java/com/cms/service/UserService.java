@@ -20,6 +20,16 @@ public class UserService {
         Page<CmsUser> r = userRepo.findAll(PageRequest.of(page-1, pageSize));
         return mapper.paged(r.getContent().stream().map(mapper::user).collect(Collectors.toList()), page, pageSize, r.getTotalElements());
     }
+    public CmsUser authenticateByEmail(String email) {
+        String normalizedEmail = Optional.ofNullable(email).orElse("").trim().toLowerCase(Locale.ROOT);
+        CmsUser user = userRepo.findByEmail(normalizedEmail)
+            .filter(found -> "ACTIVE".equals(found.getStatus()))
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록된 활성 사용자만 로그인할 수 있습니다."));
+        user.setLastLoginAt(Instant.now());
+        user.setUpdatedAt(Instant.now());
+        return userRepo.save(user);
+    }
+
     public Map<String,Object> updateRoles(UUID userId, List<String> roles, String reason, CmsUser actor) {
         CmsUser user = userRepo.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         user.setRoles(new HashSet<>(roles)); user.setUpdatedAt(Instant.now());

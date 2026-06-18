@@ -2,10 +2,11 @@ package com.cms.controller;
 import com.cms.entity.CmsUser;
 import com.cms.security.SessionFilter;
 import com.cms.service.*;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import java.time.Duration;
 import java.util.*;
 @RestController
 @RequiredArgsConstructor
@@ -33,8 +34,29 @@ public class ApiController {
         CmsUser u = user(req);
         return Map.of("user", mapper.user(u), "permissions", permissionService.getPermissions(u));
     }
+    @PostMapping("/api/v1/auth/session")
+    public ResponseEntity<Map<String,Object>> login(@RequestBody Map<String,Object> body) {
+        CmsUser authenticated = userService.authenticateByEmail(String.valueOf(body.getOrDefault("email", "")));
+        ResponseCookie sessionCookie = ResponseCookie.from(SessionFilter.SESSION_COOKIE, authenticated.getId().toString())
+            .httpOnly(true)
+            .sameSite("Lax")
+            .path("/")
+            .maxAge(Duration.ofDays(7))
+            .build();
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
+            .body(Map.of("user", mapper.user(authenticated), "permissions", permissionService.getPermissions(authenticated)));
+    }
     @DeleteMapping("/api/v1/auth/session")
-    public ResponseEntity<Void> logout() { return ResponseEntity.noContent().build(); }
+    public ResponseEntity<Void> logout() {
+        ResponseCookie expiredCookie = ResponseCookie.from(SessionFilter.SESSION_COOKIE, "")
+            .httpOnly(true)
+            .sameSite("Lax")
+            .path("/")
+            .maxAge(0)
+            .build();
+        return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, expiredCookie.toString()).build();
+    }
 
     // Content
     @GetMapping("/api/v1/content")
