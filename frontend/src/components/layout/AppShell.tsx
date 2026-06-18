@@ -14,6 +14,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  LogIn,
   Sun,
   Tags,
   UserCog,
@@ -22,6 +23,7 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { navigationGroups } from "../../app/routes";
+import { useAuth } from "../../features/auth/AuthContext";
 
 const iconMap = {
   dashboard: Gauge,
@@ -42,6 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { logout, user } = useAuth();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -94,9 +97,19 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Bell className="h-5 w-5" aria-hidden="true" />
                   <span className="absolute -end-[6px] -top-[5px] flex h-2 w-2 rounded-full bg-primary" />
                 </button>
+                {user ? (
+                  <button className="button-base h-9 rounded-full bg-lightprimary px-4 text-primary hover:bg-primary hover:text-white" type="button" onClick={() => void logout()}>
+                    로그아웃
+                  </button>
+                ) : (
+                  <NavLink className="button-base h-9 rounded-full bg-lightprimary px-4 text-primary hover:bg-primary hover:text-white" to="/login">
+                    <LogIn className="h-4 w-4" aria-hidden="true" />
+                    로그인
+                  </NavLink>
+                )}
                 <button className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-lightprimary" type="button">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">관</span>
-                  <span className="hidden text-sm font-medium text-foreground dark:text-white md:inline">관리자</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">{user?.displayName?.slice(0, 1) ?? "방"}</span>
+                  <span className="hidden text-sm font-medium text-foreground dark:text-white md:inline">{user?.displayName ?? "방문자"}</span>
                   <ChevronDown className="hidden h-4 w-4 text-muted-foreground md:block" aria-hidden="true" />
                 </button>
               </div>
