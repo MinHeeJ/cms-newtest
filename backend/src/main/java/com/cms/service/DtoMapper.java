@@ -11,14 +11,14 @@ public class DtoMapper {
 
     public Map<String,Object> user(CmsUser u) {
         Map<String,Object> m = new LinkedHashMap<>();
-        m.put("id", u.getId()); m.put("email", u.getEmail());
+        m.put("id", u.getId()); m.put("username", u.getUsername()); m.put("email", u.getEmail());
         m.put("displayName", u.getDisplayName()); m.put("status", u.getStatus());
         m.put("roles", new ArrayList<>(u.getRoles()));
         m.put("lastLoginAt", u.getLastLoginAt()); m.put("createdAt", u.getCreatedAt()); m.put("updatedAt", u.getUpdatedAt());
         return m;
     }
     public Map<String,Object> userSummary(CmsUser u) {
-        return Map.of("id", u.getId(), "email", u.getEmail(), "displayName", u.getDisplayName());
+        return Map.of("id", u.getId(), "username", u.getUsername(), "email", u.getEmail(), "displayName", u.getDisplayName());
     }
     public Map<String,Object> taxonomy(TaxonomyTerm t) {
         Map<String,Object> m = new LinkedHashMap<>();

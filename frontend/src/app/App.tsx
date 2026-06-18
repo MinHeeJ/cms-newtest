@@ -6,7 +6,7 @@ import { appRoutes } from "./routes";
 export function App() {
   const element = useRoutes(appRoutes);
   const location = useLocation();
-  const isLoginRoute = location.pathname === "/login";
+  const isAuthRoute = location.pathname === "/login" || location.pathname === "/register";
 
-  return <AuthProvider>{isLoginRoute ? element : <AppShell>{element}</AppShell>}</AuthProvider>;
+  return <AuthProvider>{isAuthRoute ? element : <AppShell>{element}</AppShell>}</AuthProvider>;
 }

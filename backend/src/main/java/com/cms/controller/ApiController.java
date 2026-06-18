@@ -36,16 +36,18 @@ public class ApiController {
     }
     @PostMapping("/api/v1/auth/session")
     public ResponseEntity<Map<String,Object>> login(@RequestBody Map<String,Object> body) {
-        CmsUser authenticated = userService.authenticateByEmail(String.valueOf(body.getOrDefault("email", "")));
-        ResponseCookie sessionCookie = ResponseCookie.from(SessionFilter.SESSION_COOKIE, authenticated.getId().toString())
-            .httpOnly(true)
-            .sameSite("Lax")
-            .path("/")
-            .maxAge(Duration.ofDays(7))
-            .build();
-        return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
-            .body(Map.of("user", mapper.user(authenticated), "permissions", permissionService.getPermissions(authenticated)));
+        CmsUser authenticated = userService.authenticate(
+            String.valueOf(body.getOrDefault("username", "")),
+            String.valueOf(body.getOrDefault("password", "")));
+        return sessionResponse(authenticated, HttpStatus.OK);
+    }
+    @PostMapping("/api/v1/auth/register")
+    public ResponseEntity<Map<String,Object>> register(@RequestBody Map<String,Object> body) {
+        CmsUser registered = userService.register(
+            String.valueOf(body.getOrDefault("username", "")),
+            String.valueOf(body.getOrDefault("password", "")),
+            String.valueOf(body.getOrDefault("passwordConfirm", "")));
+        return sessionResponse(registered, HttpStatus.CREATED);
     }
     @DeleteMapping("/api/v1/auth/session")
     public ResponseEntity<Void> logout() {
@@ -56,6 +58,18 @@ public class ApiController {
             .maxAge(0)
             .build();
         return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, expiredCookie.toString()).build();
+    }
+
+    private ResponseEntity<Map<String,Object>> sessionResponse(CmsUser user, HttpStatus status) {
+        ResponseCookie sessionCookie = ResponseCookie.from(SessionFilter.SESSION_COOKIE, user.getId().toString())
+            .httpOnly(true)
+            .sameSite("Lax")
+            .path("/")
+            .maxAge(Duration.ofDays(7))
+            .build();
+        return ResponseEntity.status(status)
+            .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
+            .body(Map.of("user", mapper.user(user), "permissions", permissionService.getPermissions(user)));
     }
 
     // Content
