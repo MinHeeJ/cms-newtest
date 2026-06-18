@@ -7,7 +7,14 @@ export interface AuthSession {
 }
 
 export interface LoginRequest {
-  email: string;
+  username: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  passwordConfirm: string;
 }
 
 export function getSession(): Promise<AuthSession> {
@@ -16,6 +23,13 @@ export function getSession(): Promise<AuthSession> {
 
 export function login(request: LoginRequest): Promise<AuthSession> {
   return apiClient<AuthSession>("/api/v1/auth/session", {
+    method: "POST",
+    body: request
+  });
+}
+
+export function register(request: RegisterRequest): Promise<AuthSession> {
+  return apiClient<AuthSession>("/api/v1/auth/register", {
     method: "POST",
     body: request
   });

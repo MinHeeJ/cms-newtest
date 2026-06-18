@@ -9,6 +9,7 @@ import { ScheduledContentPage } from "../features/content/ScheduledContentPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { SettingsPage } from "../features/dashboard/SettingsPage";
 import { LoginPage } from "../features/auth/LoginPage";
+import { RegisterPage } from "../features/auth/RegisterPage";
 import { MediaLibraryPage } from "../features/media/MediaLibraryPage";
 import { NavigationBuilderPage } from "../features/navigation/NavigationBuilderPage";
 import { TaxonomyManagerPage } from "../features/taxonomy/TaxonomyManagerPage";
@@ -66,6 +67,7 @@ export const navigationGroups: Array<{ label: string; items: NavigationItemConfi
 
 export const appRoutes: RouteObject[] = [
   { path: "/login", element: <LoginPage /> },
+  { path: "/register", element: <RegisterPage /> },
   { path: "/", element: <DashboardPage /> },
   { path: "/content", element: <ContentListPage /> },
   { path: "/content/new", element: <ContentEditorPage /> },

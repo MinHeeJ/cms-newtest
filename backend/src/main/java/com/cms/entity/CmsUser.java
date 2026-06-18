@@ -7,7 +7,9 @@ import java.util.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class CmsUser {
     @Id @GeneratedValue(strategy=GenerationType.UUID) private UUID id;
+    @Column(nullable=false, unique=true) private String username;
     @Column(nullable=false, unique=true) private String email;
+    @Column(name="password_hash", nullable=false) private String passwordHash;
     @Column(name="display_name", nullable=false) private String displayName;
     @Column(name="status") private String status = "ACTIVE";
     @Column(name="last_login_at") private Instant lastLoginAt;

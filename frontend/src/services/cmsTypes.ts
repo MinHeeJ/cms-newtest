@@ -18,6 +18,7 @@ export type WorkflowEventType =
 
 export interface UserSummary {
   id: string;
+  username: string;
   email: string;
   displayName: string;
 }

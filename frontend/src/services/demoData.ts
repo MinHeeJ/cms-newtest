@@ -5,8 +5,9 @@ const now = "2026-06-16T06:00:00.000Z";
 export const demoUsers: User[] = [
   {
     id: "11111111-1111-4111-8111-111111111111",
-    email: "admin@example.com",
-    displayName: "관리자",
+    username: "basic",
+    email: "basic@example.com",
+    displayName: "기본 관리자",
     status: "ACTIVE",
     roles: ["ADMIN"],
     lastLoginAt: now,
@@ -15,6 +16,7 @@ export const demoUsers: User[] = [
   },
   {
     id: "22222222-2222-4222-8222-222222222222",
+    username: "editor",
     email: "editor@example.com",
     displayName: "편집자",
     status: "ACTIVE",
@@ -25,6 +27,7 @@ export const demoUsers: User[] = [
   },
   {
     id: "33333333-3333-4333-8333-333333333333",
+    username: "author",
     email: "author@example.com",
     displayName: "작성자",
     status: "ACTIVE",
