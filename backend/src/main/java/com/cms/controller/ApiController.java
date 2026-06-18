@@ -6,6 +6,7 @@ import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import java.time.Duration;
 import java.util.*;
 @RestController
@@ -22,7 +23,11 @@ public class ApiController {
     private final com.cms.service.DtoMapper mapper;
 
     private CmsUser user(HttpServletRequest req) {
-        return (CmsUser) req.getAttribute(SessionFilter.ATTR_USER);
+        CmsUser currentUser = (CmsUser) req.getAttribute(SessionFilter.ATTR_USER);
+        if (currentUser == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        return currentUser;
     }
 
     @GetMapping("/health")

@@ -12,7 +12,8 @@ export function getSession(): Promise<AuthSession> {
 
 export function login(request: { email: string }): Promise<AuthSession> {
   return apiClient<AuthSession>("/api/v1/auth/session", {
-    headers: { "X-CMS-User": request.email }
+    method: "POST",
+    body: { email: request.email }
   });
 }
 

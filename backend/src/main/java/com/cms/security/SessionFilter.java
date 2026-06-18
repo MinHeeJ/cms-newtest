@@ -17,19 +17,7 @@ public class SessionFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
-        String email = req.getHeader("X-CMS-User");
-        String role  = req.getHeader("X-CMS-Role");
         CmsUser user = userFromCookie(req).orElse(null);
-        if (user == null && email != null && !email.isBlank())
-            user = userRepo.findByEmail(email.trim().toLowerCase(Locale.ROOT)).orElse(null);
-        if (user == null && role != null && !role.isBlank()) {
-            List<CmsUser> byRole = userRepo.findByRolesContaining(role.toUpperCase(Locale.ROOT));
-            if (!byRole.isEmpty()) user = byRole.get(0);
-        }
-        if (user == null) {
-            List<CmsUser> all = userRepo.findAll();
-            if (!all.isEmpty()) user = all.get(0);
-        }
         req.setAttribute(ATTR_USER, user);
         chain.doFilter(req, res);
     }
