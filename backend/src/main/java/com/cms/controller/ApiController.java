@@ -47,6 +47,10 @@ public class ApiController {
             .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
             .body(Map.of("user", mapper.user(authenticated), "permissions", permissionService.getPermissions(authenticated)));
     }
+    @PostMapping("/api/v1/auth/recovery")
+    public Map<String,Object> recoverCredentials(@RequestBody Map<String,Object> body) {
+        return userService.recoverCredentialsByEmail(String.valueOf(body.getOrDefault("email", "")));
+    }
     @DeleteMapping("/api/v1/auth/session")
     public ResponseEntity<Void> logout() {
         ResponseCookie expiredCookie = ResponseCookie.from(SessionFilter.SESSION_COOKIE, "")

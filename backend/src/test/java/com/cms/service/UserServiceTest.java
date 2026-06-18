@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -71,6 +72,50 @@ class UserServiceTest {
             .isInstanceOf(ResponseStatusException.class)
             .extracting(error -> ((ResponseStatusException) error).getStatusCode())
             .isEqualTo(HttpStatus.UNAUTHORIZED);
+        verify(userRepo, never()).save(any(CmsUser.class));
+    }
+
+    @Test
+    void recoverCredentialsByEmailReturnsActiveAccountWithoutUpdatingLogin() {
+        CmsUser storedUser = CmsUser.builder()
+            .id(UUID.fromString("11111111-1111-4111-8111-111111111111"))
+            .email("admin@example.com")
+            .displayName("관리자")
+            .status("ACTIVE")
+            .roles(Set.of("ADMIN"))
+            .build();
+        when(userRepo.findByEmail("admin@example.com")).thenReturn(Optional.of(storedUser));
+
+        Map<String, Object> recovery = userService.recoverCredentialsByEmail("  ADMIN@example.com  ");
+
+        assertThat(recovery)
+            .containsEntry("loginId", "admin@example.com")
+            .containsEntry("displayName", "관리자")
+            .containsEntry("passwordRecoveryMessage", "비밀번호는 보안상 표시할 수 없습니다. 관리자에게 초기화 요청을 보내세요.");
+        verify(userRepo, never()).save(any(CmsUser.class));
+    }
+
+    @Test
+    void recoverCredentialsByEmailRejectsUnknownOrInactiveUsers() {
+        when(userRepo.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.recoverCredentialsByEmail("missing@example.com"))
+            .isInstanceOf(ResponseStatusException.class)
+            .extracting(error -> ((ResponseStatusException) error).getStatusCode())
+            .isEqualTo(HttpStatus.NOT_FOUND);
+
+        CmsUser suspendedUser = CmsUser.builder()
+            .id(UUID.fromString("22222222-2222-4222-8222-222222222222"))
+            .email("editor@example.com")
+            .displayName("편집자")
+            .status("SUSPENDED")
+            .build();
+        when(userRepo.findByEmail("editor@example.com")).thenReturn(Optional.of(suspendedUser));
+
+        assertThatThrownBy(() -> userService.recoverCredentialsByEmail("editor@example.com"))
+            .isInstanceOf(ResponseStatusException.class)
+            .extracting(error -> ((ResponseStatusException) error).getStatusCode())
+            .isEqualTo(HttpStatus.NOT_FOUND);
         verify(userRepo, never()).save(any(CmsUser.class));
     }
 }
