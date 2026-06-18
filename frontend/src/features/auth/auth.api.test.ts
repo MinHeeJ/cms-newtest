@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { login } from "./auth.api";
+import { login, recoverCredentials } from "./auth.api";
 
 const sessionPayload = {
   user: {
@@ -29,6 +29,28 @@ describe("auth api", () => {
 
     expect(session.user.email).toBe("admin@example.com");
     expect(fetchMock).toHaveBeenCalledWith("http://localhost/api/v1/auth/session", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "admin@example.com" })
+    });
+  });
+
+  it("posts an email to recover the stored login id without exposing passwords", async () => {
+    vi.stubGlobal("window", { location: { origin: "http://localhost" } });
+    const recoveryPayload = {
+      loginId: "admin@example.com",
+      displayName: "관리자",
+      passwordRecoveryMessage: "비밀번호는 보안상 표시할 수 없습니다. 관리자에게 초기화 요청을 보내세요."
+    };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(recoveryPayload), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const recovery = await recoverCredentials({ email: "admin@example.com" });
+
+    expect(recovery.loginId).toBe("admin@example.com");
+    expect(recovery.passwordRecoveryMessage).not.toContain("password");
+    expect(fetchMock).toHaveBeenCalledWith("http://localhost/api/v1/auth/recovery", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },

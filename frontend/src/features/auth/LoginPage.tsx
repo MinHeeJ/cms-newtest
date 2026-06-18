@@ -1,16 +1,21 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, DatabaseZap, FileCheck2, Layers3, Sparkles } from "lucide-react";
+import { ArrowRight, DatabaseZap, FileCheck2, KeyRound, Layers3, Search, Sparkles } from "lucide-react";
 import { ApiClientError } from "../../services/apiClient";
 import { useAuth } from "./AuthContext";
+import { recoverCredentials, type CredentialRecoveryResult } from "./auth.api";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
   const [email, setEmail] = useState("admin@example.com");
+  const [recoveryEmail, setRecoveryEmail] = useState("admin@example.com");
   const [error, setError] = useState<string | null>(null);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
+  const [recoveryResult, setRecoveryResult] = useState<CredentialRecoveryResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   const destination = useMemo(() => {
     const state = location.state as { from?: { pathname?: string } } | null;
@@ -32,6 +37,25 @@ export function LoginPage() {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleRecoverySubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setRecoveryError(null);
+    setRecoveryResult(null);
+    setIsRecovering(true);
+    try {
+      const result = await recoverCredentials({ email: recoveryEmail });
+      setRecoveryResult(result);
+    } catch (recoveryRequestError) {
+      if (recoveryRequestError instanceof ApiClientError && recoveryRequestError.status === 404) {
+        setRecoveryError("가입 시 입력한 활성 사용자 이메일을 찾을 수 없습니다.");
+      } else {
+        setRecoveryError("계정 찾기 요청을 처리하지 못했습니다. 잠시 후 다시 시도하세요.");
+      }
+    } finally {
+      setIsRecovering(false);
     }
   }
 
@@ -116,6 +140,62 @@ export function LoginPage() {
               <button className="button-base h-12 w-full rounded-xl bg-primary text-white hover:bg-primaryemphasis" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "로그인 중..." : "로그인"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </form>
+
+            <div className="my-8 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground dark:text-white/40">
+              <span className="h-px flex-1 bg-ld dark:bg-white/10" />
+              계정 찾기
+              <span className="h-px flex-1 bg-ld dark:bg-white/10" />
+            </div>
+
+            <form className="rounded-2xl border border-ld bg-[#f8faff] p-5 shadow-[0_16px_40px_rgba(29,43,76,0.06)] dark:border-white/10 dark:bg-white/[0.04]" onSubmit={handleRecoverySubmit}>
+              <div className="flex items-start gap-3">
+                <span className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-primary/20">
+                  <KeyRound className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <h3 className="text-base font-semibold tracking-[-0.02em] text-foreground dark:text-white">아이디/비밀번호 찾기</h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground dark:text-white/60">
+                    가입 시 입력한 이메일을 입력하면 로그인 아이디를 확인하고 비밀번호 초기화 안내를 받을 수 있습니다.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <label className="mb-2 block text-sm font-medium text-foreground dark:text-white" htmlFor="recovery-email">
+                  가입 이메일
+                </label>
+                <input
+                  id="recovery-email"
+                  name="recovery-email"
+                  type="email"
+                  className="form-control h-12 rounded-xl bg-white dark:bg-transparent"
+                  placeholder="admin@example.com"
+                  autoComplete="email"
+                  value={recoveryEmail}
+                  onChange={(event) => setRecoveryEmail(event.target.value)}
+                  required
+                />
+              </div>
+
+              {recoveryError ? (
+                <div className="mt-4 rounded-xl border border-error/20 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
+                  {recoveryError}
+                </div>
+              ) : null}
+
+              {recoveryResult ? (
+                <div className="mt-4 rounded-xl border border-success/20 bg-success/10 px-4 py-3 text-sm text-foreground dark:text-white" role="status">
+                  <p className="font-semibold">{recoveryResult.displayName}님의 로그인 아이디</p>
+                  <p className="mt-1 font-mono text-primary">{recoveryResult.loginId}</p>
+                  <p className="mt-2 leading-6 text-muted-foreground dark:text-white/60">{recoveryResult.passwordRecoveryMessage}</p>
+                </div>
+              ) : null}
+
+              <button className="button-base mt-5 h-12 w-full rounded-xl border border-primary/25 bg-white text-primary hover:bg-primary hover:text-white dark:bg-transparent" type="submit" disabled={isRecovering}>
+                {isRecovering ? "계정 확인 중..." : "이메일로 계정 찾기"}
+                <Search className="h-4 w-4" aria-hidden="true" />
               </button>
             </form>
           </div>
