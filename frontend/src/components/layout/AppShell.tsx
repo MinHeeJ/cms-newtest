@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="hidden items-center gap-2 xl:flex">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                  <input className="form-control w-96 pl-10" placeholder="콘텐츠 검색..." type="search" />
+                  <input className="form-control form-control-with-leading-icon w-96" placeholder="콘텐츠 검색..." type="search" />
                 </div>
               </div>
               <NavLink className="block text-base font-semibold text-primary xl:hidden" to="/">

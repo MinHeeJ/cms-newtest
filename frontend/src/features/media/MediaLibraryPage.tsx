@@ -39,7 +39,7 @@ export function MediaLibraryPage() {
         <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <input className="form-control pl-10" placeholder="파일명 또는 altText 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
+            <input className="form-control form-control-with-leading-icon" placeholder="파일명 또는 altText 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
           </div>
           <select className="form-control" value={type} onChange={(event) => setType(event.target.value)}>
             <option value="ALL">전체 유형</option>

@@ -46,7 +46,7 @@ export function ContentListPage() {
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                <input className="form-control min-w-full pl-10 lg:min-w-96" placeholder="제목, slug, 요약 검색" type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
+                <input className="form-control form-control-with-leading-icon min-w-full lg:min-w-96" placeholder="제목, slug, 요약 검색" type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
               </div>
               <select className="form-control w-44" value={status} onChange={(event) => setStatus(event.target.value as ContentStatus | "ALL")}>
                 {statuses.map((option) => (
