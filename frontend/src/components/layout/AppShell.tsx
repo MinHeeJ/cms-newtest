@@ -17,6 +17,7 @@ import {
   Sun,
   Tags,
   UserCog,
+  UserPlus,
   X
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -35,6 +36,7 @@ const iconMap = {
   users: UserCog,
   audit: LayoutList,
   settings: Settings,
+  register: UserPlus,
   boxes: Boxes
 };
 

@@ -41,9 +41,9 @@ export async function apiClient<T>(path: string, options: RequestOptions = {}): 
     return undefined as T;
   }
 
-  const payload = (await response.json()) as T & { code?: string; message?: string };
+  const payload = (await response.json()) as T & { code?: string; message?: string; error?: string };
   if (!response.ok) {
-    throw new ApiClientError(response.status, payload.code ?? "REQUEST_ERROR", payload.message ?? "요청을 처리하지 못했습니다.");
+    throw new ApiClientError(response.status, payload.code ?? "REQUEST_ERROR", payload.message ?? payload.error ?? "요청을 처리하지 못했습니다.");
   }
 
   return payload;
