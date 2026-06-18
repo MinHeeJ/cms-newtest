@@ -83,7 +83,11 @@ body {
 }
 
 .form-control {
-  @apply flex h-10 w-full rounded-lg border border-ld bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#333f55] dark:text-white dark:placeholder:text-white/30;
+  @apply flex h-10 w-full rounded-lg border border-ld bg-transparent px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-0 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#333f55] dark:text-white dark:placeholder:text-white/30;
+}
+
+.form-control-with-leading-icon {
+  @apply pl-11;
 }
 
 .button-base {

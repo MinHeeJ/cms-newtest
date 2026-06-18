@@ -53,8 +53,8 @@ export function ContentListPage() {
                         <h2 className="text-xl font-semibold text-foreground dark:text-white">콘텐츠 목록</h2>
                         <div className="flex flex-wrap items-center gap-2">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                                <input className="form-control min-w-full pl-10 lg:min-w-96" placeholder="제목 검색" type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} />
+                                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                                <input className="form-control form-control-with-leading-icon min-w-full lg:min-w-96" placeholder="제목 검색" type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} />
                             </div>
                             <select className="form-control w-44" value={status} onChange={(e) => { setStatus(e.target.value as ContentStatus | "ALL"); setPage(1); }}>
                                 {statuses.map((s) => <option key={s} value={s}>{s === "ALL" ? "전체 상태" : s}</option>)}

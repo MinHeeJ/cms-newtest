@@ -36,8 +36,8 @@ export function PublishPanel({ content, scheduledAt, onScheduleChange, onSave, o
             예약 게시
           </label>
           <div className="relative">
-            <CalendarClock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <input id="schedule" className="form-control pl-10" type="datetime-local" value={scheduledAt} onChange={(event) => onScheduleChange(event.target.value)} />
+            <CalendarClock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <input id="schedule" className="form-control form-control-with-leading-icon" type="datetime-local" value={scheduledAt} onChange={(event) => onScheduleChange(event.target.value)} />
           </div>
         </div>
         <div className="rounded-md bg-lightsecondary p-4">
