@@ -8,6 +8,7 @@ import {
   Gauge,
   Image,
   LayoutList,
+  LogIn,
   Menu,
   Moon,
   Network,
@@ -22,6 +23,7 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { navigationGroups } from "../../app/routes";
+import { useAuth } from "../../features/auth/AuthContext";
 
 const iconMap = {
   dashboard: Gauge,
@@ -42,6 +44,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user } = useAuth();
+  const displayName = user?.displayName ?? "관리자";
+  const initial = displayName.trim().charAt(0) || "관";
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -94,9 +99,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Bell className="h-5 w-5" aria-hidden="true" />
                   <span className="absolute -end-[6px] -top-[5px] flex h-2 w-2 rounded-full bg-primary" />
                 </button>
+                <NavLink className="button-base h-10 rounded-full border border-ld bg-white px-4 text-primary hover:bg-lightprimary dark:border-[#333f55] dark:bg-transparent" to="/login">
+                  <LogIn className="h-4 w-4" aria-hidden="true" />
+                  <span className="hidden sm:inline">로그인</span>
+                </NavLink>
                 <button className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-lightprimary" type="button">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">관</span>
-                  <span className="hidden text-sm font-medium text-foreground dark:text-white md:inline">관리자</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">{initial}</span>
+                  <span className="hidden text-sm font-medium text-foreground dark:text-white md:inline">{displayName}</span>
                   <ChevronDown className="hidden h-4 w-4 text-muted-foreground md:block" aria-hidden="true" />
                 </button>
               </div>
