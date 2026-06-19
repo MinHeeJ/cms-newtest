@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPublishingCalendar, calendarCellTone } from "./DashboardPage";
+import { buildPublishingCalendar, calendarCellTone, dashboardDecorativeAssets } from "./DashboardPage";
 
 describe("dashboard publishing calendar", () => {
   it("builds a month calendar with daily published counts from the trend data", () => {
@@ -21,5 +21,19 @@ describe("dashboard publishing calendar", () => {
     expect(calendarCellTone(1, 6)).toContain("bg-primary/10");
     expect(calendarCellTone(3, 6)).toContain("bg-primary/30");
     expect(calendarCellTone(6, 6)).toContain("bg-primary/70");
+  });
+});
+
+describe("dashboard decorative assets", () => {
+  it("keeps the hero visually larger and image-backed", () => {
+    expect(dashboardDecorativeAssets.hero.className).toContain("min-h-[128px]");
+    expect(dashboardDecorativeAssets.hero.style.backgroundImage).toContain("url(");
+    expect(dashboardDecorativeAssets.hero.style.backgroundImage).toContain("linear-gradient");
+  });
+
+  it("adds a low-opacity review background without reducing list readability", () => {
+    expect(dashboardDecorativeAssets.review.backdropClassName).toContain("opacity-20");
+    expect(dashboardDecorativeAssets.review.listClassName).toContain("relative");
+    expect(dashboardDecorativeAssets.review.itemClassName).toContain("bg-white/85");
   });
 });

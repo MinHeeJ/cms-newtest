@@ -1,11 +1,31 @@
 import { ArrowUpRight, CalendarClock, CalendarDays, CheckCircle2, FileText, Layers3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import dashboardHeroOrbits from "../../assets/dashboard-hero-orbits.svg";
+import reviewQueueSoftCards from "../../assets/review-queue-soft-cards.svg";
 import { LoadingPanel } from "../../components/feedback/UIState";
 import { dashboardApi } from "../../services/dashboardApi";
 import type { DashboardMetrics, WorkflowEvent } from "../../services/cmsTypes";
 
 type PublishingTrendPoint = DashboardMetrics["publishingTrend"][number];
+
+export const dashboardDecorativeAssets = {
+  hero: {
+    className: "relative flex min-h-[128px] items-center justify-between overflow-hidden rounded-lg bg-lightsecondary p-8",
+    style: {
+      backgroundImage: `linear-gradient(105deg, rgba(255,255,255,0.92) 0%, rgba(238,244,255,0.82) 44%, rgba(73,190,255,0.2) 100%), url(${dashboardHeroOrbits})`,
+      backgroundPosition: "center, right -22px center",
+      backgroundRepeat: "no-repeat, no-repeat",
+      backgroundSize: "cover, min(54%, 560px) auto"
+    }
+  },
+  review: {
+    cardClassName: "card-box relative h-full overflow-hidden",
+    backdropClassName: "pointer-events-none absolute -right-12 top-8 h-56 w-72 bg-contain bg-right bg-no-repeat opacity-20 dark:opacity-15",
+    listClassName: "relative z-[1] mt-6 space-y-4",
+    itemClassName: "block rounded-md border border-ld bg-white/85 p-4 backdrop-blur-sm transition-colors hover:bg-primary/10 dark:border-[#333f55] dark:bg-dark/80"
+  }
+};
 
 interface PublishingCalendarCell {
   date: string;
@@ -72,16 +92,17 @@ export function DashboardPage() {
     { label: "예약", value: metrics.contentCounts.scheduled, tone: "bg-secondary/10 text-secondary", icon: CalendarClock }
   ];
   const publishingCalendar = buildPublishingCalendar(metrics.publishingTrend);
+  const reviewQueueEvents = metrics.recentActivity.filter((e) => e.eventType === "SUBMIT").slice(0, 5);
 
   return (
     <div className="grid grid-cols-12 gap-6">
       <section className="col-span-12">
-        <div className="relative flex items-center justify-between rounded-lg bg-lightsecondary p-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-primary text-lg font-semibold text-white">H</div>
-            <div className="flex flex-col gap-0.5">
+        <div className={dashboardDecorativeAssets.hero.className} style={dashboardDecorativeAssets.hero.style}>
+          <div className="relative z-[1] flex items-center gap-4">
+            <div className="flex h-[58px] w-[58px] items-center justify-center rounded-2xl bg-primary text-xl font-semibold text-white shadow-md shadow-primary/20">H</div>
+            <div className="flex flex-col gap-1">
               <h1 className="card-title">Dashboard</h1>
-              <p className="text-sm text-muted-foreground">콘텐츠 운영 현황과 검토 작업을 한 화면에서 확인합니다.</p>
+              <p className="max-w-xl text-sm leading-6 text-muted-foreground">콘텐츠 운영 현황과 검토 작업을 한 화면에서 확인합니다.</p>
             </div>
           </div>
         </div>
@@ -157,11 +178,12 @@ export function DashboardPage() {
       </section>
 
       <section className="col-span-12 lg:col-span-4">
-        <div className="card-box h-full">
-          <h2 className="card-title">검토 대기</h2>
-          <div className="mt-6 space-y-4">
-            {metrics.recentActivity.filter((e) => e.eventType === "SUBMIT").slice(0, 5).map((event) => (
-              <NavLink key={event.id} className="block rounded-md border border-ld p-4 transition-colors hover:bg-primary/10 dark:border-[#333f55]" to="/review">
+        <div className={dashboardDecorativeAssets.review.cardClassName}>
+          <div className={dashboardDecorativeAssets.review.backdropClassName} style={{ backgroundImage: `url(${reviewQueueSoftCards})` }} aria-hidden="true" />
+          <h2 className="relative z-[1] card-title">검토 대기</h2>
+          <div className={dashboardDecorativeAssets.review.listClassName}>
+            {reviewQueueEvents.map((event) => (
+              <NavLink key={event.id} className={dashboardDecorativeAssets.review.itemClassName} to="/review">
                 <p className="text-sm font-semibold text-foreground dark:text-white">{event.targetId}</p>
                 <p className="text-xs text-muted-foreground">{event.actor.displayName} · {new Date(event.createdAt).toLocaleString("ko-KR")}</p>
               </NavLink>
