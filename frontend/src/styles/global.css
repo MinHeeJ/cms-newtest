@@ -98,6 +98,22 @@ input[type="checkbox"] {
   @apply h-4 w-4 rounded border-ld text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .animate-dashboard-float {
+    animation: dashboard-float 7s ease-in-out infinite;
+  }
+}
+
+@keyframes dashboard-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0.6deg);
+  }
+}
+
 .cms-preview h1 {
   @apply mb-4 text-2xl font-semibold;
 }
