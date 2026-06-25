@@ -1,5 +1,9 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import { buildPublishingCalendar, calendarCellTone } from "./DashboardPage";
+import type { DashboardMetrics } from "../../services/cmsTypes";
+import { DashboardShowcaseHero, buildPublishingCalendar, calendarCellTone } from "./DashboardPage";
 
 describe("dashboard publishing calendar", () => {
   it("builds a month calendar with daily published counts from the trend data", () => {
@@ -21,5 +25,50 @@ describe("dashboard publishing calendar", () => {
     expect(calendarCellTone(1, 6)).toContain("bg-primary/10");
     expect(calendarCellTone(3, 6)).toContain("bg-primary/30");
     expect(calendarCellTone(6, 6)).toContain("bg-primary/70");
+  });
+});
+
+describe("dashboard commercial hero", () => {
+  const metrics: DashboardMetrics = {
+    contentCounts: {
+      draft: 4,
+      inReview: 3,
+      approved: 2,
+      scheduled: 5,
+      published: 18,
+      archived: 1
+    },
+    reviewQueueCount: 3,
+    scheduledCount: 5,
+    publishingTrend: [
+      { date: "2026-06-10", publishedCount: 2 },
+      { date: "2026-06-11", publishedCount: 4 }
+    ],
+    recentActivity: [
+      {
+        id: "evt-1",
+        eventType: "SUBMIT",
+        actor: { id: "user-1", email: "editor@example.com", displayName: "김에디터" },
+        targetType: "CONTENT",
+        targetId: "CNT-104",
+        beforeState: null,
+        afterState: null,
+        comment: null,
+        createdAt: "2026-06-11T10:30:00Z"
+      }
+    ]
+  };
+
+  it("renders a branded animated command-center hero from live dashboard metrics", () => {
+    const markup = renderToStaticMarkup(
+      createElement(MemoryRouter, null, createElement(DashboardShowcaseHero, { metrics }))
+    );
+
+    expect(markup).toContain("콘텐츠 관제실");
+    expect(markup).toContain("게시된 콘텐츠");
+    expect(markup).toContain("18");
+    expect(markup).toContain("animate-dashboard-float");
+    expect(markup).toContain("bg-[radial-gradient");
+    expect(markup).toContain("새 콘텐츠 작성");
   });
 });
