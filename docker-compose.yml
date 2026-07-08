@@ -26,7 +26,7 @@ services:
       CORS_ORIGIN: http://localhost:5188
       STORAGE_BASE_URL: /uploads
     ports:
-      - "8080"
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,7 +37,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5188"
+      - "5188:80"
     depends_on:
       - backend
 
