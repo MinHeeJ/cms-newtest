@@ -1,5 +1,3 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
-
 export class ApiClientError extends Error {
   constructor(
     public readonly status: number,
@@ -16,13 +14,14 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
 }
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
-  const url = new URL(path, API_BASE_URL || window.location.origin);
+  const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== undefined && value !== null && value !== "") {
-      url.searchParams.set(key, String(value));
+      params.set(key, String(value));
     }
   }
-  return url.toString();
+  const queryString = params.toString();
+  return queryString ? `${path}?${queryString}` : path;
 }
 
 export async function apiClient<T>(path: string, options: RequestOptions = {}): Promise<T> {

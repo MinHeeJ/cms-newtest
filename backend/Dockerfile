@@ -10,5 +10,5 @@ WORKDIR /app
 RUN addgroup -S cms && adduser -S cms -G cms
 COPY --from=builder /app/target/*.jar app.jar
 USER cms
-EXPOSE 8085
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -39,4 +39,16 @@ describe("CMS form controls and brand chrome", () => {
     expect(shell).toMatch(/<img[^>]+alt=\"CMS\"/);
     expect(logo).toContain("<svg");
   });
+
+  it("centralizes calm semantic theme tokens with system dark mode support", () => {
+    const css = readFileSync(src("styles", "global.css"), "utf8");
+    const shell = readFileSync(src("components", "layout", "AppShell.tsx"), "utf8");
+
+    expect(css).toMatch(/--color-primary:\s*#[0-9a-fA-F]{6}/);
+    expect(css).toMatch(/--surface-canvas:\s*#[0-9a-fA-F]{6}/);
+    expect(css).toMatch(/--font-display:/);
+    expect(css).toMatch(/--space-6:\s*24px/);
+    expect(css).toContain("@media (prefers-color-scheme: dark)");
+    expect(shell).toContain("matchMedia(\"(prefers-color-scheme: dark)\")");
+  });
 });

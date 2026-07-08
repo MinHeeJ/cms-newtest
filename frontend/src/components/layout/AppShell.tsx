@@ -43,12 +43,23 @@ const iconMap = {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
   const [scrolled, setScrolled] = useState(false);
   const { logout, user } = useAuth();
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncSystemTheme = (event: MediaQueryListEvent) => setDarkMode(event.matches);
+    mediaQuery.addEventListener("change", syncSystemTheme);
+    return () => mediaQuery.removeEventListener("change", syncSystemTheme);
+  }, []);
+
+  useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
+    document.documentElement.classList.toggle("light", !darkMode);
   }, [darkMode]);
 
   useEffect(() => {
@@ -61,7 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const sidebar = useMemo(() => <Sidebar onNavigate={() => setMobileOpen(false)} />, []);
 
   return (
-    <div className="flex min-h-screen w-full bg-white dark:bg-dark">
+    <div className="flex min-h-screen w-full bg-[var(--surface-canvas)] dark:bg-dark">
       <div className="hidden xl:block">{sidebar}</div>
       {mobileOpen ? (
         <div className="fixed inset-0 z-40 xl:hidden">
@@ -75,8 +86,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       ) : null}
       <div className="page-wrapper flex w-full">
-        <div className="body-wrapper w-full bg-white dark:bg-dark">
-          <header className={`sticky top-0 z-[2] ${scrolled ? "bg-white shadow-md dark:bg-dark" : "bg-transparent"}`}>
+        <div className="body-wrapper w-full bg-[var(--surface-canvas)] dark:bg-dark">
+          <header className={`sticky top-0 z-[2] ${scrolled ? "bg-white/90 shadow-md backdrop-blur dark:bg-dark/90" : "bg-transparent"}`}>
             <nav className="flex !max-w-full items-center justify-between rounded-none bg-transparent px-6 py-4 dark:bg-transparent">
               <button className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-lightprimary hover:text-primary xl:hidden" type="button" aria-label="메뉴 열기" onClick={() => setMobileOpen(true)}>
                 <Menu className="h-5 w-5" aria-hidden="true" />
@@ -84,7 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="hidden items-center gap-2 xl:flex">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                  <input className="form-control form-control-with-leading-icon w-96" placeholder="콘텐츠 검색..." type="search" />
+                  <input className="form-control form-control-with-leading-icon w-96" placeholder="지난 주에 발행된 미완료 게시물 보여줘" type="search" aria-label="통합 자연어 검색" />
                 </div>
               </div>
               <NavLink className="block xl:hidden" to="/" aria-label="CMS 홈">
