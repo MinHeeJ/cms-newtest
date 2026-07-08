@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8085}
+  port: ${PORT:8080}
 
 spring:
   datasource:
@@ -26,4 +26,4 @@ cms:
   cors:
     allowed-origins: ${CORS_ORIGIN:http://localhost:5188}
   storage:
-    base-url: ${STORAGE_BASE_URL:http://localhost:8085/uploads}
+    base-url: ${STORAGE_BASE_URL:/uploads}

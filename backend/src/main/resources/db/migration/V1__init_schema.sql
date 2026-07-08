@@ -1,4 +1,4 @@
-CREATE TABLE cms_users (
+CREATE TABLE IF NOT EXISTS cms_users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email         VARCHAR(255) NOT NULL UNIQUE,
   display_name  VARCHAR(255) NOT NULL,
@@ -8,13 +8,13 @@ CREATE TABLE cms_users (
   updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE cms_user_roles (
+CREATE TABLE IF NOT EXISTS cms_user_roles (
   user_id UUID        NOT NULL REFERENCES cms_users(id) ON DELETE CASCADE,
   role    VARCHAR(20) NOT NULL,
   PRIMARY KEY (user_id, role)
 );
 
-CREATE TABLE cms_taxonomy_terms (
+CREATE TABLE IF NOT EXISTS cms_taxonomy_terms (
   id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   type        VARCHAR(20)  NOT NULL,
   name        VARCHAR(255) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE cms_taxonomy_terms (
   updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE cms_media_assets (
+CREATE TABLE IF NOT EXISTS cms_media_assets (
   id           UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   file_name    VARCHAR(255) NOT NULL,
   mime_type    VARCHAR(100) NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE cms_media_assets (
   updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE cms_content_items (
+CREATE TABLE IF NOT EXISTS cms_content_items (
   id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   content_type      VARCHAR(20)  NOT NULL,
   title             VARCHAR(160) NOT NULL,
@@ -59,19 +59,19 @@ CREATE TABLE cms_content_items (
   updated_at        TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE cms_content_categories (
+CREATE TABLE IF NOT EXISTS cms_content_categories (
   content_id UUID NOT NULL REFERENCES cms_content_items(id) ON DELETE CASCADE,
   term_id    UUID NOT NULL REFERENCES cms_taxonomy_terms(id),
   PRIMARY KEY (content_id, term_id)
 );
 
-CREATE TABLE cms_content_tags (
+CREATE TABLE IF NOT EXISTS cms_content_tags (
   content_id UUID NOT NULL REFERENCES cms_content_items(id) ON DELETE CASCADE,
   term_id    UUID NOT NULL REFERENCES cms_taxonomy_terms(id),
   PRIMARY KEY (content_id, term_id)
 );
 
-CREATE TABLE cms_content_revisions (
+CREATE TABLE IF NOT EXISTS cms_content_revisions (
   id                     UUID  PRIMARY KEY DEFAULT gen_random_uuid(),
   content_item_id        UUID  NOT NULL REFERENCES cms_content_items(id) ON DELETE CASCADE,
   revision_number        INT   NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE cms_content_revisions (
   UNIQUE (content_item_id, revision_number)
 );
 
-CREATE TABLE cms_publication_schedules (
+CREATE TABLE IF NOT EXISTS cms_publication_schedules (
   id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   content_item_id UUID        NOT NULL REFERENCES cms_content_items(id) ON DELETE CASCADE,
   scheduled_at    TIMESTAMPTZ NOT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE cms_publication_schedules (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE cms_navigation_menus (
+CREATE TABLE IF NOT EXISTS cms_navigation_menus (
   id         UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   key        VARCHAR(100) NOT NULL UNIQUE,
   label      VARCHAR(255) NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE cms_navigation_menus (
   updated_at TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE cms_navigation_items (
+CREATE TABLE IF NOT EXISTS cms_navigation_items (
   id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   menu_id     UUID        NOT NULL REFERENCES cms_navigation_menus(id) ON DELETE CASCADE,
   label       VARCHAR(255) NOT NULL,
@@ -116,7 +116,7 @@ CREATE TABLE cms_navigation_items (
   is_visible  BOOLEAN     NOT NULL DEFAULT true
 );
 
-CREATE TABLE cms_workflow_events (
+CREATE TABLE IF NOT EXISTS cms_workflow_events (
   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   event_type   VARCHAR(30) NOT NULL,
   actor_id     UUID        NOT NULL REFERENCES cms_users(id),

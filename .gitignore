@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.next/
+coverage/
+*.log
+
+# Playwright verifier artifacts
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/

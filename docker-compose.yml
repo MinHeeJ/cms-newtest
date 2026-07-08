@@ -5,8 +5,6 @@ services:
       POSTGRES_DB: cms
       POSTGRES_USER: cms
       POSTGRES_PASSWORD: cms
-    ports:
-      - "5433:5432"
     volumes:
       - cms-postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -24,11 +22,11 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/cms
       DB_USER: cms
       DB_PASSWORD: cms
-      PORT: 8085
-      CORS_ORIGIN: http://localhost:5188,http://frontend:5188
-      STORAGE_BASE_URL: http://localhost:8085/uploads
+      PORT: 8080
+      CORS_ORIGIN: http://localhost:5188
+      STORAGE_BASE_URL: /uploads
     ports:
-      - "8085:8085"
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,12 +36,17 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        VITE_API_BASE_URL: http://localhost:8085
     ports:
       - "5188:5188"
     depends_on:
       - backend
+
+networks:
+  default:
+    name: cms-267-scope-analysis-network
+    ipam:
+      config:
+        - subnet: 10.89.67.0/24
 
 volumes:
   cms-postgres-data:
