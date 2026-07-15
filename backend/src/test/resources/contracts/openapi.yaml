@@ -1,0 +1,2343 @@
+openapi: 3.0.3
+info:
+  title: Markdown CMS REST API
+  version: 0.1.0
+  description: 마크다운 CMS Portal/Admin/운영/사업관리 계약. canonical_id가 기본 추적 키다.
+servers:
+- url: /
+tags:
+- name: Health
+- name: Portal
+- name: Folders
+- name: Documents
+- name: Attachments
+- name: Operations
+- name: ProjectManagement
+paths:
+  /api/health:
+    get:
+      operationId: getPublicHealth
+      tags:
+      - Health
+      summary: 공개 aggregate health 조회
+      x-related-requirements:
+      - REQ-033
+      - REQ-079
+      - REQ-080
+      - REQ-081
+      - REQ-094
+      parameters: []
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': &id001
+          $ref: '#/components/responses/BadRequest'
+        '401': &id002
+          $ref: '#/components/responses/Unauthorized'
+        '403': &id003
+          $ref: '#/components/responses/Forbidden'
+        '404': &id004
+          $ref: '#/components/responses/NotFound'
+        '409': &id005
+          $ref: '#/components/responses/Conflict'
+      x-related-fr:
+      - FR-022
+  /api/admin/health/details:
+    get:
+      operationId: getDetailedHealth
+      tags:
+      - Health
+      summary: 보호된 dependency health 조회
+      x-related-requirements:
+      - REQ-033
+      - REQ-052
+      parameters: []
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-022
+      x-roles:
+      - authenticated
+  /api/portal/tree:
+    get:
+      operationId: getPortalTree
+      tags:
+      - Portal
+      summary: Portal tree 조회
+      x-related-requirements:
+      - REQ-018
+      - REQ-030
+      - REQ-049
+      - REQ-095
+      - REQ-096
+      - REQ-097
+      - REQ-098
+      - REQ-104
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/FolderId'
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-007
+      - FR-019
+  /api/portal/documents:
+    get:
+      operationId: searchPortalDocuments
+      tags:
+      - Portal
+      summary: 발행 Document 검색
+      x-related-requirements:
+      - REQ-012
+      - REQ-029
+      - REQ-030
+      - REQ-047
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/FolderId'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-001
+      - FR-018
+      - FR-019
+  /api/portal/documents/{documentId}:
+    parameters:
+    - name: documentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    get:
+      operationId: getPortalDocument
+      tags:
+      - Portal
+      summary: 발행 Document 상세 조회
+      x-related-requirements:
+      - REQ-031
+      parameters: []
+      security: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-020
+  /api/admin/folders:
+    get:
+      operationId: listFolders
+      tags:
+      - Folders
+      summary: Folder collection 조회
+      x-related-requirements:
+      - REQ-017
+      - REQ-018
+      - REQ-034
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/FolderId'
+      - $ref: '#/components/parameters/Status'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-006
+      - FR-007
+      - FR-023
+      x-roles:
+      - authenticated
+    post:
+      operationId: createFolder
+      tags:
+      - Folders
+      summary: Folder 생성
+      x-related-requirements:
+      - REQ-017
+      - REQ-034
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - parent가 존재하고 순환하지 않는다.
+      - 같은 parent의 name과 displayOrder 규칙을 지킨다.
+      x-side-effects:
+      - Folder와 AuditLog를 생성한다.
+      x-required-tests:
+      - root/child 성공
+      - 중복 name
+      - 최대 depth
+      - 권한 거부
+      - 'happy: verify createFolder contract'
+      - 'auth: verify createFolder contract'
+      - 'validation: verify createFolder contract'
+      - 'business: verify createFolder contract'
+      - 'side-effect: verify createFolder contract'
+      x-state-transitions:
+      - NONE -> ACTIVE|INACTIVE
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-006
+      - FR-023
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FolderInput'
+      x-roles:
+      - authenticated
+  /api/admin/folders/{folderId}:
+    parameters:
+    - name: folderId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    put:
+      operationId: updateFolder
+      tags:
+      - Folders
+      summary: Folder 수정
+      x-related-requirements:
+      - REQ-017
+      - REQ-023
+      - REQ-034
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - role, 입력값, version을 검증한다.
+      x-side-effects:
+      - 업무 데이터와 AuditLog를 갱신한다.
+      x-required-tests:
+      - 성공
+      - 검증 실패
+      - 권한 거부
+      - 동시성 충돌
+      - 'happy: verify updateFolder contract'
+      - 'auth: verify updateFolder contract'
+      - 'validation: verify updateFolder contract'
+      - 'business: verify updateFolder contract'
+      - 'side-effect: verify updateFolder contract'
+      x-state-transitions:
+      - ACTIVE <-> INACTIVE
+      - parent 변경 시 비순환 유지
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-006
+      - FR-012
+      - FR-023
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FolderInput'
+      x-roles:
+      - authenticated
+    delete:
+      operationId: deleteFolder
+      tags:
+      - Folders
+      summary: 빈 Folder 삭제
+      x-related-requirements:
+      - REQ-017
+      - REQ-034
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - child Folder와 Document가 없어야 한다.
+      x-side-effects:
+      - Folder를 삭제하고 AuditLog를 기록한다.
+      x-required-tests:
+      - 빈 Folder 성공
+      - child 차단
+      - Document 차단
+      - 경합 차단
+      - 'happy: verify deleteFolder contract'
+      - 'auth: verify deleteFolder contract'
+      - 'validation: verify deleteFolder contract'
+      - 'business: verify deleteFolder contract'
+      - 'side-effect: verify deleteFolder contract'
+      x-state-transitions:
+      - ACTIVE|INACTIVE -> DELETED
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-006
+      - FR-023
+      x-roles:
+      - authenticated
+  /api/admin/documents:
+    get:
+      operationId: listAdminDocuments
+      tags:
+      - Documents
+      summary: 관리 Document collection 조회
+      x-related-requirements:
+      - REQ-018
+      - REQ-035
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/FolderId'
+      - $ref: '#/components/parameters/Status'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-007
+      - FR-024
+      x-roles:
+      - authenticated
+    post:
+      operationId: createDocument
+      tags:
+      - Documents
+      summary: Document 생성
+      x-related-requirements:
+      - REQ-019
+      - REQ-035
+      - REQ-037
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - 유효한 Folder와 non-blank title/body가 필요하다.
+      x-side-effects:
+      - DRAFT Document, Revision, AuditLog를 생성한다.
+      x-required-tests:
+      - 생성 성공
+      - 필수값 실패
+      - 비활성 Folder
+      - 권한 거부
+      - 'happy: verify createDocument contract'
+      - 'auth: verify createDocument contract'
+      - 'validation: verify createDocument contract'
+      - 'business: verify createDocument contract'
+      - 'side-effect: verify createDocument contract'
+      x-state-transitions:
+      - NONE -> DRAFT
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-008
+      - FR-024
+      - FR-026
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentInput'
+      x-roles:
+      - authenticated
+  /api/admin/documents/{documentId}:
+    parameters:
+    - name: documentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    get:
+      operationId: getAdminDocument
+      tags:
+      - Documents
+      summary: 관리 Document 상세 조회
+      x-related-requirements:
+      - REQ-020
+      - REQ-035
+      parameters: []
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-009
+      - FR-024
+      x-roles:
+      - authenticated
+    put:
+      operationId: updateDocument
+      tags:
+      - Documents
+      summary: Document 수정
+      x-related-requirements:
+      - REQ-020
+      - REQ-024
+      - REQ-035
+      - REQ-037
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - role, 입력값, version을 검증한다.
+      x-side-effects:
+      - Document, Revision, AuditLog를 갱신한다.
+      x-required-tests:
+      - 수정 성공
+      - XSS sanitize
+      - version 충돌
+      - 삭제 상태 차단
+      - 'happy: verify updateDocument contract'
+      - 'auth: verify updateDocument contract'
+      - 'validation: verify updateDocument contract'
+      - 'business: verify updateDocument contract'
+      - 'side-effect: verify updateDocument contract'
+      x-state-transitions:
+      - DRAFT|IN_REVIEW|REVIEWED|UNPUBLISHED -> 동일 상태 새 Revision
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-009
+      - FR-013
+      - FR-024
+      - FR-026
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentInput'
+      x-roles:
+      - authenticated
+    delete:
+      operationId: deleteDocument
+      tags:
+      - Documents
+      summary: Document 논리삭제
+      x-related-requirements:
+      - REQ-022
+      - REQ-035
+      - REQ-037
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - ADMIN만 수행하고 Attachment 보존 정책을 적용한다.
+      x-side-effects:
+      - Portal/search에서 제외하고 AuditLog를 기록한다.
+      x-required-tests:
+      - 삭제 성공
+      - 중복 삭제
+      - 권한 거부
+      - Attachment 정리 추적
+      - 'happy: verify deleteDocument contract'
+      - 'auth: verify deleteDocument contract'
+      - 'validation: verify deleteDocument contract'
+      - 'business: verify deleteDocument contract'
+      - 'side-effect: verify deleteDocument contract'
+      x-state-transitions:
+      - ANY_NON_DELETED -> DELETED
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-011
+      - FR-024
+      - FR-026
+      x-roles:
+      - authenticated
+  /api/admin/documents/{documentId}/transitions:
+    parameters:
+    - name: documentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    post:
+      operationId: transitionDocumentState
+      tags:
+      - Documents
+      summary: Document 상태 전이
+      x-related-requirements:
+      - REQ-021
+      - REQ-035
+      - REQ-037
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - 허용된 targetStatus만 가능하다.
+      - PUBLISHED에는 필수 publication 정보가 필요하다.
+      x-side-effects:
+      - publication visibility, Revision, AuditLog를 갱신한다.
+      x-required-tests:
+      - 각 허용 전이
+      - 금지 전이
+      - 비활성 Folder
+      - 동일 상태
+      - 'happy: verify transitionDocumentState contract'
+      - 'auth: verify transitionDocumentState contract'
+      - 'validation: verify transitionDocumentState contract'
+      - 'business: verify transitionDocumentState contract'
+      - 'side-effect: verify transitionDocumentState contract'
+      x-state-transitions:
+      - DRAFT -> IN_REVIEW
+      - IN_REVIEW -> REVIEWED
+      - REVIEWED -> PUBLISHED
+      - PUBLISHED -> UNPUBLISHED
+      - UNPUBLISHED -> IN_REVIEW|PUBLISHED
+      - ANY_NON_DELETED -> DELETED
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-010
+      - FR-024
+      - FR-026
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentTransitionInput'
+      x-roles:
+      - authenticated
+  /api/admin/documents/{documentId}/attachments:
+    parameters:
+    - name: documentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    get:
+      operationId: listAttachments
+      tags:
+      - Attachments
+      summary: Attachment collection 조회
+      x-related-requirements:
+      - REQ-026
+      - REQ-036
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/Status'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-016
+      - FR-025
+      x-roles:
+      - authenticated
+    post:
+      operationId: uploadAttachment
+      tags:
+      - Attachments
+      summary: Attachment 업로드
+      x-related-requirements:
+      - REQ-015
+      - REQ-025
+      - REQ-026
+      - REQ-036
+      - REQ-053
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - allowlist, size, MIME, signature, filename, 권한을 검증한다.
+      x-side-effects:
+      - object와 metadata를 생성하고 실패 시 보상한다.
+      x-required-tests:
+      - 정상
+      - 용량 초과
+      - MIME 불일치
+      - 암호화 PDF
+      - 부분 실패
+      - 'happy: verify uploadAttachment contract'
+      - 'auth: verify uploadAttachment contract'
+      - 'validation: verify uploadAttachment contract'
+      - 'business: verify uploadAttachment contract'
+      - 'side-effect: verify uploadAttachment contract'
+      x-state-transitions:
+      - NONE -> UPLOADING -> AVAILABLE|FAILED
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+      x-related-fr:
+      - FR-004
+      - FR-014
+      - FR-015
+      - FR-025
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      x-roles:
+      - authenticated
+  /api/attachments/{attachmentId}:
+    parameters:
+    - name: attachmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    get:
+      operationId: downloadAttachment
+      tags:
+      - Attachments
+      summary: Attachment 다운로드
+      x-related-requirements:
+      - REQ-015
+      - REQ-026
+      - REQ-036
+      - REQ-069
+      x-related-fr:
+      - FR-004
+      - FR-016
+      - FR-025
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 권한 검증된 file stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-roles:
+      - authenticated
+    delete:
+      operationId: deleteAttachment
+      tags:
+      - Attachments
+      summary: Attachment 논리삭제
+      x-related-requirements:
+      - REQ-028
+      - REQ-036
+      - REQ-037
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - 권한과 보존 정책을 검증한다.
+      x-side-effects:
+      - 조회/다운로드에서 제외하고 AuditLog를 기록한다.
+      x-required-tests:
+      - 성공
+      - 중복
+      - 권한 변경
+      - object 불일치
+      - 'happy: verify deleteAttachment contract'
+      - 'auth: verify deleteAttachment contract'
+      - 'validation: verify deleteAttachment contract'
+      - 'business: verify deleteAttachment contract'
+      - 'side-effect: verify deleteAttachment contract'
+      x-state-transitions:
+      - AVAILABLE|FAILED -> DELETED
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-017
+      - FR-025
+      - FR-026
+      x-roles:
+      - authenticated
+  /api/admin/audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags:
+      - Operations
+      summary: AuditLog collection 조회
+      x-related-requirements:
+      - REQ-037
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/OwnerId'
+      - $ref: '#/components/parameters/From'
+      - $ref: '#/components/parameters/To'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-026
+      x-roles:
+      - authenticated
+  /api/admin/backups:
+    get:
+      operationId: listBackupJobs
+      tags:
+      - Operations
+      summary: BackupJob collection 조회
+      x-related-requirements:
+      - REQ-038
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/From'
+      - $ref: '#/components/parameters/To'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-027
+      x-roles:
+      - authenticated
+    post:
+      operationId: createBackupJob
+      tags:
+      - Operations
+      summary: BackupJob 생성
+      x-related-requirements:
+      - REQ-038
+      - REQ-059
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - 승인된 role만 실행한다.
+      - DB와 file을 같은 recovery set으로 묶는다.
+      x-side-effects:
+      - 비동기 backup과 manifest 생성을 시작한다.
+      x-required-tests:
+      - ALL 성공
+      - 부분 실패
+      - 권한 거부
+      - 중복
+      - 'happy: verify createBackupJob contract'
+      - 'auth: verify createBackupJob contract'
+      - 'validation: verify createBackupJob contract'
+      - 'business: verify createBackupJob contract'
+      - 'side-effect: verify createBackupJob contract'
+      x-state-transitions:
+      - NONE -> QUEUED -> RUNNING -> SUCCEEDED|FAILED
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-027
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BackupRequest'
+      x-roles:
+      - authenticated
+  /api/admin/restore-verifications:
+    post:
+      operationId: verifyRestore
+      tags:
+      - Operations
+      summary: 격리 환경 복구 검증
+      x-related-requirements:
+      - REQ-038
+      - REQ-059
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - target은 VALIDATION만 허용한다.
+      - checksum이 유효해야 한다.
+      x-side-effects:
+      - 격리 복구와 무결성 검증을 시작한다.
+      x-required-tests:
+      - 성공
+      - 손상 backup
+      - file 누락
+      - 운영 target 차단
+      - 'happy: verify verifyRestore contract'
+      - 'auth: verify verifyRestore contract'
+      - 'validation: verify verifyRestore contract'
+      - 'business: verify verifyRestore contract'
+      - 'side-effect: verify verifyRestore contract'
+      x-state-transitions:
+      - NONE -> QUEUED -> RUNNING -> SUCCEEDED|FAILED
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-027
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestoreVerificationRequest'
+      x-roles:
+      - authenticated
+  /api/admin/migrations:
+    get:
+      operationId: listMigrationJobs
+      tags:
+      - Operations
+      summary: MigrationJob collection 조회
+      x-related-requirements:
+      - REQ-039
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/From'
+      - $ref: '#/components/parameters/To'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-028
+      x-roles:
+      - authenticated
+    post:
+      operationId: createMigrationJob
+      tags:
+      - Operations
+      summary: MigrationJob 생성
+      x-related-requirements:
+      - REQ-039
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - 형식, 필수값, 참조, 중복 정책을 검증한다.
+      x-side-effects:
+      - 비동기 import, item 결과, AuditLog를 생성한다.
+      x-required-tests:
+      - 집계
+      - idempotency
+      - encoding 오류
+      - 부분 오류
+      - 'happy: verify createMigrationJob contract'
+      - 'auth: verify createMigrationJob contract'
+      - 'validation: verify createMigrationJob contract'
+      - 'business: verify createMigrationJob contract'
+      - 'side-effect: verify createMigrationJob contract'
+      x-state-transitions:
+      - NONE -> QUEUED -> RUNNING -> SUCCEEDED|FAILED
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-028
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MigrationRequest'
+      x-roles:
+      - authenticated
+  /api/admin/project/schedule-items:
+    get:
+      operationId: listScheduleItems
+      tags:
+      - ProjectManagement
+      summary: ScheduleItem collection 조회
+      x-related-requirements:
+      - REQ-040
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/OwnerId'
+      - $ref: '#/components/parameters/From'
+      - $ref: '#/components/parameters/To'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-029
+      x-roles:
+      - authenticated
+    post:
+      operationId: createScheduleItem
+      tags:
+      - ProjectManagement
+      summary: ScheduleItem 생성
+      x-related-requirements:
+      - REQ-040
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - ScheduleItem 필수 field와 업무 규칙을 검증한다.
+      x-side-effects:
+      - ScheduleItem와 AuditLog를 생성한다.
+      x-required-tests:
+      - 성공
+      - 필수값
+      - 업무 규칙
+      - 권한
+      - 'happy: verify createScheduleItem contract'
+      - 'auth: verify createScheduleItem contract'
+      - 'validation: verify createScheduleItem contract'
+      - 'business: verify createScheduleItem contract'
+      - 'side-effect: verify createScheduleItem contract'
+      x-state-transitions:
+      - NONE -> ScheduleItem initial status
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-029
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleItemInput'
+      x-roles:
+      - authenticated
+  /api/admin/project/requirement-items:
+    get:
+      operationId: listRequirementItems
+      tags:
+      - ProjectManagement
+      summary: RequirementItem collection 조회
+      x-related-requirements:
+      - REQ-041
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/OwnerId'
+      - $ref: '#/components/parameters/From'
+      - $ref: '#/components/parameters/To'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-030
+      x-roles:
+      - authenticated
+    post:
+      operationId: createRequirementItem
+      tags:
+      - ProjectManagement
+      summary: RequirementItem 생성
+      x-related-requirements:
+      - REQ-041
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - RequirementItem 필수 field와 업무 규칙을 검증한다.
+      x-side-effects:
+      - RequirementItem와 AuditLog를 생성한다.
+      x-required-tests:
+      - 성공
+      - 필수값
+      - 업무 규칙
+      - 권한
+      - 'happy: verify createRequirementItem contract'
+      - 'auth: verify createRequirementItem contract'
+      - 'validation: verify createRequirementItem contract'
+      - 'business: verify createRequirementItem contract'
+      - 'side-effect: verify createRequirementItem contract'
+      x-state-transitions:
+      - NONE -> RequirementItem initial status
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-030
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequirementItemInput'
+      x-roles:
+      - authenticated
+  /api/admin/project/workforce-assignments:
+    get:
+      operationId: listWorkforceAssignments
+      tags:
+      - ProjectManagement
+      summary: WorkforceAssignment collection 조회
+      x-related-requirements:
+      - REQ-042
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/OwnerId'
+      - $ref: '#/components/parameters/From'
+      - $ref: '#/components/parameters/To'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-031
+      x-roles:
+      - authenticated
+    post:
+      operationId: createWorkforceAssignment
+      tags:
+      - ProjectManagement
+      summary: WorkforceAssignment 생성
+      x-related-requirements:
+      - REQ-042
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - WorkforceAssignment 필수 field와 업무 규칙을 검증한다.
+      x-side-effects:
+      - WorkforceAssignment와 AuditLog를 생성한다.
+      x-required-tests:
+      - 성공
+      - 필수값
+      - 업무 규칙
+      - 권한
+      - 'happy: verify createWorkforceAssignment contract'
+      - 'auth: verify createWorkforceAssignment contract'
+      - 'validation: verify createWorkforceAssignment contract'
+      - 'business: verify createWorkforceAssignment contract'
+      - 'side-effect: verify createWorkforceAssignment contract'
+      x-state-transitions:
+      - NONE -> WorkforceAssignment initial status
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-031
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkforceAssignmentInput'
+      x-roles:
+      - authenticated
+  /api/admin/project/risk-issues:
+    get:
+      operationId: listRiskIssues
+      tags:
+      - ProjectManagement
+      summary: RiskIssue collection 조회
+      x-related-requirements:
+      - REQ-043
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/OwnerId'
+      - $ref: '#/components/parameters/From'
+      - $ref: '#/components/parameters/To'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-032
+      x-roles:
+      - authenticated
+    post:
+      operationId: createRiskIssue
+      tags:
+      - ProjectManagement
+      summary: RiskIssue 생성
+      x-related-requirements:
+      - REQ-043
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - RiskIssue 필수 field와 업무 규칙을 검증한다.
+      x-side-effects:
+      - RiskIssue와 AuditLog를 생성한다.
+      x-required-tests:
+      - 성공
+      - 필수값
+      - 업무 규칙
+      - 권한
+      - 'happy: verify createRiskIssue contract'
+      - 'auth: verify createRiskIssue contract'
+      - 'validation: verify createRiskIssue contract'
+      - 'business: verify createRiskIssue contract'
+      - 'side-effect: verify createRiskIssue contract'
+      x-state-transitions:
+      - NONE -> RiskIssue initial status
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-032
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskIssueInput'
+      x-roles:
+      - authenticated
+  /api/admin/project/deliverables:
+    get:
+      operationId: listDeliverables
+      tags:
+      - ProjectManagement
+      summary: Deliverable collection 조회
+      x-related-requirements:
+      - REQ-044
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/OwnerId'
+      - $ref: '#/components/parameters/From'
+      - $ref: '#/components/parameters/To'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-033
+      x-roles:
+      - authenticated
+    post:
+      operationId: createDeliverable
+      tags:
+      - ProjectManagement
+      summary: Deliverable 생성
+      x-related-requirements:
+      - REQ-044
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - Deliverable 필수 field와 업무 규칙을 검증한다.
+      x-side-effects:
+      - Deliverable와 AuditLog를 생성한다.
+      x-required-tests:
+      - 성공
+      - 필수값
+      - 업무 규칙
+      - 권한
+      - 'happy: verify createDeliverable contract'
+      - 'auth: verify createDeliverable contract'
+      - 'validation: verify createDeliverable contract'
+      - 'business: verify createDeliverable contract'
+      - 'side-effect: verify createDeliverable contract'
+      x-state-transitions:
+      - NONE -> Deliverable initial status
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-033
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliverableInput'
+      x-roles:
+      - authenticated
+  /api/admin/project/change-requests:
+    get:
+      operationId: listChangeRequests
+      tags:
+      - ProjectManagement
+      summary: ChangeRequest collection 조회
+      x-related-requirements:
+      - REQ-045
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      - $ref: '#/components/parameters/Sort'
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/Status'
+      - $ref: '#/components/parameters/OwnerId'
+      - $ref: '#/components/parameters/From'
+      - $ref: '#/components/parameters/To'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-034
+      x-roles:
+      - authenticated
+    post:
+      operationId: createChangeRequest
+      tags:
+      - ProjectManagement
+      summary: ChangeRequest 생성
+      x-related-requirements:
+      - REQ-045
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - ChangeRequest 필수 field와 업무 규칙을 검증한다.
+      x-side-effects:
+      - ChangeRequest와 AuditLog를 생성한다.
+      x-required-tests:
+      - 성공
+      - 필수값
+      - 업무 규칙
+      - 권한
+      - 'happy: verify createChangeRequest contract'
+      - 'auth: verify createChangeRequest contract'
+      - 'validation: verify createChangeRequest contract'
+      - 'business: verify createChangeRequest contract'
+      - 'side-effect: verify createChangeRequest contract'
+      x-state-transitions:
+      - NONE -> ChangeRequest initial status
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-034
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeRequestInput'
+      x-roles:
+      - authenticated
+  /api/admin/project/change-requests/{changeRequestId}/transitions:
+    parameters:
+    - name: changeRequestId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    post:
+      operationId: transitionChangeRequest
+      tags:
+      - ProjectManagement
+      summary: ChangeRequest 상태 전이
+      x-related-requirements:
+      - REQ-041
+      - REQ-045
+      security:
+      - bearerAuth: []
+      x-business-rules:
+      - 영향도 분석 없이 승인 대기로 갈 수 없다.
+      - 승인된 변경만 IMPLEMENTING으로 간다.
+      - REJECTED에는 사유가 필요하다.
+      x-side-effects:
+      - ChangeRequest와 관련 이력, AuditLog를 갱신한다.
+      x-required-tests:
+      - 허용 전이
+      - 영향도 누락
+      - 무승인 반영
+      - 검증 실패
+      - 'happy: verify transitionChangeRequest contract'
+      - 'auth: verify transitionChangeRequest contract'
+      - 'validation: verify transitionChangeRequest contract'
+      - 'business: verify transitionChangeRequest contract'
+      - 'side-effect: verify transitionChangeRequest contract'
+      x-state-transitions:
+      - REQUESTED -> IMPACT_ANALYSIS
+      - IMPACT_ANALYSIS -> PENDING_APPROVAL
+      - PENDING_APPROVAL -> APPROVED|REJECTED
+      - APPROVED -> IMPLEMENTING
+      - IMPLEMENTING -> VERIFIED
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+      x-related-fr:
+      - FR-030
+      - FR-034
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeTransitionInput'
+      x-roles:
+      - authenticated
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 운영 IdP 또는 개발 role adapter token
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: 0-based page
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      description: page size
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Sort:
+      name: sort
+      in: query
+      description: field,direction
+      schema:
+        type: string
+        default: updatedAt,desc
+    Query:
+      name: q
+      in: query
+      description: 검색/filter text
+      schema:
+        type: string
+        maxLength: 200
+    Status:
+      name: status
+      in: query
+      description: enum status filter
+      schema:
+        type: string
+    FolderId:
+      name: folderId
+      in: query
+      description: Folder filter
+      schema:
+        type: string
+        format: uuid
+    OwnerId:
+      name: ownerId
+      in: query
+      description: owner filter
+      schema:
+        type: string
+    From:
+      name: from
+      in: query
+      description: inclusive start
+      schema:
+        type: string
+    To:
+      name: to
+      in: query
+      description: inclusive end
+      schema:
+        type: string
+  schemas:
+    PageMeta:
+      type: object
+      required:
+      - page
+      - size
+      - totalElements
+      - totalPages
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    ApiResponse:
+      type: object
+      required:
+      - success
+      - requestId
+      - timestamp
+      properties:
+        success:
+          type: boolean
+        data:
+          nullable: true
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+        requestId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    FieldViolation:
+      type: object
+      required:
+      - field
+      - message
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    ApiError:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+      - type: object
+        required:
+        - error
+        properties:
+          success:
+            type: boolean
+            enum:
+            - false
+          error:
+            type: object
+            required:
+            - code
+            - message
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+              violations:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldViolation'
+    FolderInput:
+      type: object
+      required:
+      - name
+      - active
+      - displayOrder
+      properties:
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        active:
+          type: boolean
+        displayOrder:
+          type: integer
+          minimum: 0
+        version:
+          type: integer
+          format: int64
+    DocumentInput:
+      type: object
+      required:
+      - folderId
+      - title
+      - markdownBody
+      properties:
+        folderId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 300
+        markdownBody:
+          type: string
+        displayOrder:
+          type: integer
+          minimum: 0
+        version:
+          type: integer
+          format: int64
+    DocumentTransitionInput:
+      type: object
+      required:
+      - targetStatus
+      properties:
+        targetStatus:
+          type: string
+          enum:
+          - DRAFT
+          - IN_REVIEW
+          - REVIEWED
+          - PUBLISHED
+          - UNPUBLISHED
+          - DELETED
+        reason:
+          type: string
+        version:
+          type: integer
+          format: int64
+    BackupRequest:
+      type: object
+      required:
+      - targets
+      properties:
+        targets:
+          type: string
+          enum:
+          - DATABASE
+          - FILES
+          - ALL
+    RestoreVerificationRequest:
+      type: object
+      required:
+      - backupJobId
+      - target
+      properties:
+        backupJobId:
+          type: string
+          format: uuid
+        target:
+          type: string
+          enum:
+          - VALIDATION
+    MigrationRequest:
+      type: object
+      required:
+      - sourceType
+      - sourceReference
+      - deduplicationPolicy
+      properties:
+        sourceType:
+          type: string
+          enum:
+          - CSV
+          - MARKDOWN
+          - FILE_TREE
+        sourceReference:
+          type: string
+        deduplicationPolicy:
+          type: string
+          enum:
+          - MERGE
+          - SKIP
+          - CREATE_NEW
+    ProjectItemInput:
+      type: object
+      required:
+      - title
+      additionalProperties: true
+      properties:
+        title:
+          type: string
+          minLength: 1
+        status:
+          type: string
+        ownerId:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        version:
+          type: integer
+          format: int64
+    ChangeTransitionInput:
+      type: object
+      required:
+      - targetStatus
+      - comment
+      properties:
+        targetStatus:
+          type: string
+          enum:
+          - REQUESTED
+          - IMPACT_ANALYSIS
+          - PENDING_APPROVAL
+          - APPROVED
+          - REJECTED
+          - IMPLEMENTING
+          - VERIFIED
+        comment:
+          type: string
+        version:
+          type: integer
+          format: int64
+    ScheduleItemInput:
+      type: object
+      required:
+      - name
+      - startDate
+      - endDate
+      - ownerId
+      - status
+      properties:
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        ownerId:
+          type: string
+        status:
+          type: string
+          enum:
+          - PLANNED
+          - IN_PROGRESS
+          - DELAYED
+          - COMPLETED
+        deliverableId:
+          type: string
+          format: uuid
+        delayCause:
+          type: string
+        actionPlan:
+          type: string
+        version:
+          type: integer
+          format: int64
+    RequirementItemInput:
+      type: object
+      required:
+      - requirementKey
+      - name
+      - scope
+      - ownerId
+      - status
+      properties:
+        requirementKey:
+          type: string
+        name:
+          type: string
+        scope:
+          type: string
+          enum:
+          - IN_SCOPE
+          - OUT_OF_SCOPE
+          - UNDER_REVIEW
+        ownerId:
+          type: string
+        status:
+          type: string
+          enum:
+          - REGISTERED
+          - UNDER_REVIEW
+          - IN_PROGRESS
+          - COMPLETED
+          - ON_HOLD
+          - EXCLUDED
+        version:
+          type: integer
+          format: int64
+    WorkforceAssignmentInput:
+      type: object
+      required:
+      - personKey
+      - name
+      - organization
+      - role
+      - startDate
+      - endDate
+      - allocationRate
+      properties:
+        personKey:
+          type: string
+        name:
+          type: string
+        organization:
+          type: string
+        role:
+          type: string
+          enum:
+          - PM
+          - DEVELOPER
+          - QA
+          - OPERATOR
+          - SECURITY
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        allocationRate:
+          type: number
+          minimum: 0
+          maximum: 1
+        responsibility:
+          type: string
+        version:
+          type: integer
+          format: int64
+    RiskIssueInput:
+      type: object
+      required:
+      - title
+      - type
+      - cause
+      - impact
+      - severity
+      - ownerId
+      - dueDate
+      - status
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+          enum:
+          - RISK
+          - ISSUE
+        cause:
+          type: string
+        impact:
+          type: string
+        severity:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - CRITICAL
+        ownerId:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - REGISTERED
+          - ANALYZING
+          - IN_ACTION
+          - RESOLVED
+          - CLOSED
+        version:
+          type: integer
+          format: int64
+    DeliverableInput:
+      type: object
+      required:
+      - name
+      - type
+      - dueDate
+      - ownerId
+      - approverId
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        ownerId:
+          type: string
+        approverId:
+          type: string
+        versionLabel:
+          type: string
+        status:
+          type: string
+          enum:
+          - DRAFT
+          - SUBMITTED
+          - IN_REVIEW
+          - APPROVED
+          - REJECTED
+        version:
+          type: integer
+          format: int64
+    ChangeRequestInput:
+      type: object
+      required:
+      - targetType
+      - targetId
+      - reason
+      - requesterId
+      - desiredAt
+      properties:
+        targetType:
+          type: string
+        targetId:
+          type: string
+        reason:
+          type: string
+        requesterId:
+          type: string
+        desiredAt:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - REQUESTED
+        impacts:
+          type: array
+          items:
+            type: object
+            required:
+            - area
+            - impact
+            - ownerId
+            properties:
+              area:
+                type: string
+                enum:
+                - SCHEDULE
+                - SCOPE
+                - WORKFORCE
+                - DELIVERABLE
+                - RISK
+              impact:
+                type: string
+              ownerId:
+                type: string
+        version:
+          type: integer
+          format: int64
+  responses:
+    Ok:
+      description: 정상 응답
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    Created:
+      description: 생성 완료
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    Accepted:
+      description: 비동기 작업 접수
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    BadRequest:
+      description: 검증 또는 업무 규칙 위반
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: 인증 필요
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: 권한 부족
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: 대상 없음 또는 공개 불가
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Conflict:
+      description: version 또는 상태 충돌
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    PayloadTooLarge:
+      description: 업로드 용량 초과
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    UnsupportedMediaType:
+      description: 허용되지 않은 파일 형식
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+x-requirement-registry: ../requirement-registry.json
+x-traceability-exceptions:
+- canonical_id: REQ-001~REQ-011
+  reason: RFP 보안·운영·기술 제약은 API operation이 아니라 architecture, deployment, license/security gate에서 검증한다.
+- canonical_id: REQ-013~REQ-014
+  reason: 빌드·배포·라이선스·취약점 관리는 runtime REST operation 범위 밖이다.
+- canonical_id: REQ-046~REQ-050
+  reason: 성능·용량·재배포 목표는 API parameter와 test에 영향을 주지만 독립 operation으로 노출하지 않는다.
+- canonical_id: REQ-051~REQ-071
+  reason: 보안·가용성·프로젝트 제약은 securitySchemes, 공통 error, 각 operation 규칙과 infrastructure test에서 검증한다.
+- canonical_id: REQ-072~REQ-081
+  reason: 미결 결정과 문서 언어 계약은 research/documentation 관심사다.
+- canonical_id: REQ-082~REQ-106
+  reason: 기술스택, BOM, required_outputs, 디자인, 문서 배치, 품질 gate는 REST wire contract 범위 밖이다.

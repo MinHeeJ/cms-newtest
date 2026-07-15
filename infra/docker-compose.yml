@@ -14,10 +14,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+
   backend:
     image: cms-backend:local
     build:
-      context: .
+      context: ..
       dockerfile: backend/Dockerfile
     pull_policy: build
     environment:
@@ -25,6 +26,7 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-cms}
       DB_USER: ${POSTGRES_USER:-cms}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-cms}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5188}
     ports:
       - "8080:8080"
     depends_on:
@@ -35,10 +37,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
+
   frontend:
     image: cms-frontend:local
     build:
-      context: .
+      context: ..
       dockerfile: frontend/Dockerfile
     pull_policy: build
     ports:
@@ -46,5 +49,6 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
 volumes:
   cms-postgres-data:

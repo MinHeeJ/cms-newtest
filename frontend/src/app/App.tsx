@@ -1,7 +1,7 @@
 import { useLocation, useRoutes } from "react-router-dom";
 import { AppShell } from "../components/layout/AppShell";
 import { useAuth } from "../features/auth/AuthContext";
-import { appRoutes } from "./routes";
+import { appRoutes } from "./AppRouter";
 
 export function App() {
   const element = useRoutes(appRoutes);
