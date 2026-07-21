@@ -1,14 +1,12 @@
-FROM maven:3.9.6-eclipse-temurin-17 AS builder
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline -q
+FROM eclipse-temurin:17.0.10_7-jdk-alpine AS build
+WORKDIR /workspace
+RUN apk add --no-cache maven=3.9.6-r0 || apk add --no-cache maven
+COPY pom.xml ./pom.xml
 COPY src ./src
-RUN mvn package -DskipTests -q
+RUN mvn -q -DskipTests package
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17.0.10_7-jre-alpine
 WORKDIR /app
-RUN addgroup -S cms && adduser -S cms -G cms
-COPY --from=builder /app/target/*.jar app.jar
-USER cms
-EXPOSE 8085
-ENTRYPOINT ["java", "-jar", "app.jar"]
+COPY --from=build /workspace/target/cms-backend-0.1.0.jar /app/cms-backend.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/cms-backend.jar"]

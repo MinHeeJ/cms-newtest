@@ -1,29 +1,25 @@
 server:
-  port: ${PORT:8085}
-
+  port: 8080
 spring:
+  application:
+    name: cms-backend
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/cms}
-    username: ${DB_USER:cms}
-    password: ${DB_PASSWORD:cms}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cms}
+    username: ${SPRING_DATASOURCE_USERNAME:cms}
+    password: ${SPRING_DATASOURCE_PASSWORD:cms_password}
   flyway:
     enabled: true
     locations: classpath:db/migration
-
-logging:
-  level:
-    com.cms: INFO
-
-cms:
-  cors:
-    allowed-origins: ${CORS_ORIGIN:http://localhost:5188}
-  storage:
-    base-url: ${STORAGE_BASE_URL:http://localhost:8085/uploads}
+  servlet:
+    multipart:
+      max-file-size: ${CMS_MAX_FILE_SIZE:50MB}
+      max-request-size: ${CMS_MAX_REQUEST_SIZE:60MB}
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: 'NULL'
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

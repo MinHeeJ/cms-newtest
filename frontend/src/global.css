@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Arial, sans-serif;
+  color: #000;
+  background: oklch(93.46% 0.0304 254.32);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: oklch(93.46% 0.0304 254.32);
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  transition: all 150ms ease-in-out;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.prose-content h1 {
+  font-family:
+    Arial Black,
+    Arial,
+    sans-serif;
+  font-size: 1.875rem;
+  margin: 0 0 1rem;
+}
+
+.prose-content h2,
+.prose-content h3 {
+  font-family:
+    Arial Black,
+    Arial,
+    sans-serif;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.prose-content p {
+  line-height: 1.75;
+}
+
+.prose-content a {
+  font-family:
+    Arial Black,
+    Arial,
+    sans-serif;
+  text-decoration: underline;
+}
+
+.prose-content code {
+  border: 1px solid #000;
+  border-radius: 5px;
+  background: oklch(67.47% 0.1725 259.61);
+  padding: 3px 5px;
+  font-weight: 700;
+}
