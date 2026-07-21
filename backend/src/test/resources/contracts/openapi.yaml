@@ -1,0 +1,3057 @@
+openapi: 3.0.3
+info:
+  title: CMS-1298 Markdown CMS API
+  version: 0.1.0
+  description: React/Vite frontend와 Spring Boot/MyBatis backend 사이의 REST API contract.
+servers:
+- url: http://localhost:8080
+security:
+- bearerAuth: []
+paths:
+  /api/admin/audit-logs:
+    get:
+      operationId: getAdminAuditLogs
+      summary: GET /api/admin/audit-logs
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      x-related-requirements:
+      - REQ-026
+      x-related-fr:
+      - FR-026
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/backups:
+    get:
+      operationId: getAdminBackups
+      summary: GET /api/admin/backups
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      x-related-requirements:
+      - REQ-027
+      x-related-fr:
+      - FR-027
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postAdminBackups
+      summary: POST /api/admin/backups
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-027
+      x-related-fr:
+      - FR-027
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminBackups contract'
+      - 'auth: verify postAdminBackups contract'
+      - 'business: verify postAdminBackups contract'
+      - 'side-effect: verify postAdminBackups contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/backups/{backupId}/restore:
+    post:
+      operationId: postAdminBackupsBackupidRestore
+      summary: POST /api/admin/backups/{backupId}/restore
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-027
+      x-related-fr:
+      - FR-027
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminBackupsBackupidRestore contract'
+      - 'auth: verify postAdminBackupsBackupidRestore contract'
+      - 'business: verify postAdminBackupsBackupidRestore contract'
+      - 'side-effect: verify postAdminBackupsBackupidRestore contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/change-requests:
+    get:
+      operationId: getAdminChangeRequests
+      summary: GET /api/admin/change-requests
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      x-related-requirements:
+      - REQ-034
+      x-related-fr:
+      - FR-034
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postAdminChangeRequests
+      summary: POST /api/admin/change-requests
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-034
+      x-related-fr:
+      - FR-034
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminChangeRequests contract'
+      - 'auth: verify postAdminChangeRequests contract'
+      - 'business: verify postAdminChangeRequests contract'
+      - 'side-effect: verify postAdminChangeRequests contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/change-requests/{changeRequestId}:
+    patch:
+      operationId: patchAdminChangeRequestsChangerequestid
+      summary: PATCH /api/admin/change-requests/{changeRequestId}
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-034
+      x-related-fr:
+      - FR-034
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify patchAdminChangeRequestsChangerequestid contract'
+      - 'auth: verify patchAdminChangeRequestsChangerequestid contract'
+      - 'business: verify patchAdminChangeRequestsChangerequestid contract'
+      - 'side-effect: verify patchAdminChangeRequestsChangerequestid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/deliverables:
+    get:
+      operationId: getAdminDeliverables
+      summary: GET /api/admin/deliverables
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      x-related-requirements:
+      - REQ-033
+      x-related-fr:
+      - FR-033
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postAdminDeliverables
+      summary: POST /api/admin/deliverables
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-033
+      x-related-fr:
+      - FR-033
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminDeliverables contract'
+      - 'auth: verify postAdminDeliverables contract'
+      - 'business: verify postAdminDeliverables contract'
+      - 'side-effect: verify postAdminDeliverables contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/deliverables/{deliverableId}:
+    patch:
+      operationId: patchAdminDeliverablesDeliverableid
+      summary: PATCH /api/admin/deliverables/{deliverableId}
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-033
+      x-related-fr:
+      - FR-033
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify patchAdminDeliverablesDeliverableid contract'
+      - 'auth: verify patchAdminDeliverablesDeliverableid contract'
+      - 'business: verify patchAdminDeliverablesDeliverableid contract'
+      - 'side-effect: verify patchAdminDeliverablesDeliverableid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/documents:
+    get:
+      operationId: getAdminDocuments
+      summary: GET /api/admin/documents
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      x-related-requirements:
+      - REQ-005
+      - REQ-024
+      x-related-fr:
+      - FR-005
+      - FR-024
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postAdminDocuments
+      summary: POST /api/admin/documents
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-008
+      - REQ-024
+      x-related-fr:
+      - FR-008
+      - FR-024
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminDocuments contract'
+      - 'auth: verify postAdminDocuments contract'
+      - 'business: verify postAdminDocuments contract'
+      - 'side-effect: verify postAdminDocuments contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/documents/{documentId}:
+    delete:
+      operationId: deleteAdminDocumentsDocumentid
+      summary: DELETE /api/admin/documents/{documentId}
+      security:
+      - bearerAuth: []
+      x-related-requirements:
+      - REQ-011
+      x-related-fr:
+      - FR-011
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify deleteAdminDocumentsDocumentid contract'
+      - 'auth: verify deleteAdminDocumentsDocumentid contract'
+      - 'business: verify deleteAdminDocumentsDocumentid contract'
+      - 'side-effect: verify deleteAdminDocumentsDocumentid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    patch:
+      operationId: patchAdminDocumentsDocumentid
+      summary: PATCH /api/admin/documents/{documentId}
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-009
+      - REQ-024
+      x-related-fr:
+      - FR-009
+      - FR-024
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify patchAdminDocumentsDocumentid contract'
+      - 'auth: verify patchAdminDocumentsDocumentid contract'
+      - 'business: verify patchAdminDocumentsDocumentid contract'
+      - 'side-effect: verify patchAdminDocumentsDocumentid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/documents/{documentId}/publish:
+    post:
+      operationId: postAdminDocumentsDocumentidPublish
+      summary: POST /api/admin/documents/{documentId}/publish
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-010
+      x-related-fr:
+      - FR-010
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminDocumentsDocumentidPublish contract'
+      - 'auth: verify postAdminDocumentsDocumentidPublish contract'
+      - 'business: verify postAdminDocumentsDocumentidPublish contract'
+      - 'side-effect: verify postAdminDocumentsDocumentidPublish contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/documents/{documentId}/unpublish:
+    post:
+      operationId: postAdminDocumentsDocumentidUnpublish
+      summary: POST /api/admin/documents/{documentId}/unpublish
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-010
+      x-related-fr:
+      - FR-010
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminDocumentsDocumentidUnpublish contract'
+      - 'auth: verify postAdminDocumentsDocumentidUnpublish contract'
+      - 'business: verify postAdminDocumentsDocumentidUnpublish contract'
+      - 'side-effect: verify postAdminDocumentsDocumentidUnpublish contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/folders:
+    get:
+      operationId: getAdminFolders
+      summary: GET /api/admin/folders
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      x-related-requirements:
+      - REQ-006
+      - REQ-023
+      x-related-fr:
+      - FR-006
+      - FR-023
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postAdminFolders
+      summary: POST /api/admin/folders
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-006
+      - REQ-023
+      x-related-fr:
+      - FR-006
+      - FR-023
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminFolders contract'
+      - 'auth: verify postAdminFolders contract'
+      - 'business: verify postAdminFolders contract'
+      - 'side-effect: verify postAdminFolders contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/folders/{folderId}:
+    delete:
+      operationId: deleteAdminFoldersFolderid
+      summary: DELETE /api/admin/folders/{folderId}
+      security:
+      - bearerAuth: []
+      x-related-requirements:
+      - REQ-006
+      - REQ-023
+      x-related-fr:
+      - FR-006
+      - FR-023
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify deleteAdminFoldersFolderid contract'
+      - 'auth: verify deleteAdminFoldersFolderid contract'
+      - 'business: verify deleteAdminFoldersFolderid contract'
+      - 'side-effect: verify deleteAdminFoldersFolderid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    patch:
+      operationId: patchAdminFoldersFolderid
+      summary: PATCH /api/admin/folders/{folderId}
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-006
+      - REQ-023
+      x-related-fr:
+      - FR-006
+      - FR-023
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify patchAdminFoldersFolderid contract'
+      - 'auth: verify patchAdminFoldersFolderid contract'
+      - 'business: verify patchAdminFoldersFolderid contract'
+      - 'side-effect: verify patchAdminFoldersFolderid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/migrations:
+    post:
+      operationId: postAdminMigrations
+      summary: POST /api/admin/migrations
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-028
+      x-related-fr:
+      - FR-028
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminMigrations contract'
+      - 'auth: verify postAdminMigrations contract'
+      - 'business: verify postAdminMigrations contract'
+      - 'side-effect: verify postAdminMigrations contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/migrations/{migrationId}:
+    get:
+      operationId: getAdminMigrationsMigrationid
+      summary: GET /api/admin/migrations/{migrationId}
+      security:
+      - bearerAuth: []
+      x-related-requirements:
+      - REQ-028
+      x-related-fr:
+      - FR-028
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/risks:
+    get:
+      operationId: getAdminRisks
+      summary: GET /api/admin/risks
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      x-related-requirements:
+      - REQ-032
+      x-related-fr:
+      - FR-032
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postAdminRisks
+      summary: POST /api/admin/risks
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-032
+      x-related-fr:
+      - FR-032
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminRisks contract'
+      - 'auth: verify postAdminRisks contract'
+      - 'business: verify postAdminRisks contract'
+      - 'side-effect: verify postAdminRisks contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/risks/{riskId}:
+    patch:
+      operationId: patchAdminRisksRiskid
+      summary: PATCH /api/admin/risks/{riskId}
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-032
+      x-related-fr:
+      - FR-032
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify patchAdminRisksRiskid contract'
+      - 'auth: verify patchAdminRisksRiskid contract'
+      - 'business: verify patchAdminRisksRiskid contract'
+      - 'side-effect: verify patchAdminRisksRiskid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/schedules:
+    get:
+      operationId: getAdminSchedules
+      summary: GET /api/admin/schedules
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      x-related-requirements:
+      - REQ-029
+      x-related-fr:
+      - FR-029
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postAdminSchedules
+      summary: POST /api/admin/schedules
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-029
+      x-related-fr:
+      - FR-029
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminSchedules contract'
+      - 'auth: verify postAdminSchedules contract'
+      - 'business: verify postAdminSchedules contract'
+      - 'side-effect: verify postAdminSchedules contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/schedules/{scheduleId}:
+    patch:
+      operationId: patchAdminSchedulesScheduleid
+      summary: PATCH /api/admin/schedules/{scheduleId}
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-029
+      x-related-fr:
+      - FR-029
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify patchAdminSchedulesScheduleid contract'
+      - 'auth: verify patchAdminSchedulesScheduleid contract'
+      - 'business: verify patchAdminSchedulesScheduleid contract'
+      - 'side-effect: verify patchAdminSchedulesScheduleid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/scope-items:
+    get:
+      operationId: getAdminScopeItems
+      summary: GET /api/admin/scope-items
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      x-related-requirements:
+      - REQ-030
+      x-related-fr:
+      - FR-030
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postAdminScopeItems
+      summary: POST /api/admin/scope-items
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-030
+      x-related-fr:
+      - FR-030
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminScopeItems contract'
+      - 'auth: verify postAdminScopeItems contract'
+      - 'business: verify postAdminScopeItems contract'
+      - 'side-effect: verify postAdminScopeItems contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/scope-items/{scopeItemId}:
+    patch:
+      operationId: patchAdminScopeItemsScopeitemid
+      summary: PATCH /api/admin/scope-items/{scopeItemId}
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-030
+      x-related-fr:
+      - FR-030
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify patchAdminScopeItemsScopeitemid contract'
+      - 'auth: verify patchAdminScopeItemsScopeitemid contract'
+      - 'business: verify patchAdminScopeItemsScopeitemid contract'
+      - 'side-effect: verify patchAdminScopeItemsScopeitemid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/sort-order:
+    patch:
+      operationId: patchAdminSortOrder
+      summary: PATCH /api/admin/sort-order
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-012
+      x-related-fr:
+      - FR-012
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify patchAdminSortOrder contract'
+      - 'auth: verify patchAdminSortOrder contract'
+      - 'business: verify patchAdminSortOrder contract'
+      - 'side-effect: verify patchAdminSortOrder contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/staff:
+    get:
+      operationId: getAdminStaff
+      summary: GET /api/admin/staff
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      x-related-requirements:
+      - REQ-031
+      x-related-fr:
+      - FR-031
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postAdminStaff
+      summary: POST /api/admin/staff
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-031
+      x-related-fr:
+      - FR-031
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postAdminStaff contract'
+      - 'auth: verify postAdminStaff contract'
+      - 'business: verify postAdminStaff contract'
+      - 'side-effect: verify postAdminStaff contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/staff/{staffId}:
+    patch:
+      operationId: patchAdminStaffStaffid
+      summary: PATCH /api/admin/staff/{staffId}
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-031
+      x-related-fr:
+      - FR-031
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify patchAdminStaffStaffid contract'
+      - 'auth: verify patchAdminStaffStaffid contract'
+      - 'business: verify patchAdminStaffStaffid contract'
+      - 'side-effect: verify patchAdminStaffStaffid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/admin/tree:
+    get:
+      operationId: getAdminTree
+      summary: GET /api/admin/tree
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      x-related-requirements:
+      - REQ-007
+      x-related-fr:
+      - FR-007
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/attachments/{attachmentId}:
+    delete:
+      operationId: deleteAttachmentsAttachmentid
+      summary: DELETE /api/attachments/{attachmentId}
+      security:
+      - bearerAuth: []
+      x-related-requirements:
+      - REQ-004
+      - REQ-017
+      - REQ-025
+      x-related-fr:
+      - FR-004
+      - FR-017
+      - FR-025
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify deleteAttachmentsAttachmentid contract'
+      - 'auth: verify deleteAttachmentsAttachmentid contract'
+      - 'business: verify deleteAttachmentsAttachmentid contract'
+      - 'side-effect: verify deleteAttachmentsAttachmentid contract'
+      x-state-transitions:
+      - 허용된 상태 enum 전이만 성공한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/attachments/{attachmentId}/download:
+    get:
+      operationId: getAttachmentsAttachmentidDownload
+      summary: GET /api/attachments/{attachmentId}/download
+      security:
+      - bearerAuth: []
+      x-related-requirements:
+      - REQ-004
+      - REQ-016
+      x-related-fr:
+      - FR-004
+      - FR-016
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/documents/{documentId}/attachments:
+    get:
+      operationId: getDocumentsDocumentidAttachments
+      summary: GET /api/documents/{documentId}/attachments
+      security:
+      - bearerAuth: []
+      x-related-requirements:
+      - REQ-016
+      - REQ-025
+      x-related-fr:
+      - FR-016
+      - FR-025
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+    post:
+      operationId: postDocumentsDocumentidAttachments
+      summary: POST /api/documents/{documentId}/attachments
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-004
+      - REQ-014
+      - REQ-015
+      - REQ-025
+      x-related-fr:
+      - FR-004
+      - FR-014
+      - FR-015
+      - FR-025
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postDocumentsDocumentidAttachments contract'
+      - 'auth: verify postDocumentsDocumentidAttachments contract'
+      - 'business: verify postDocumentsDocumentidAttachments contract'
+      - 'side-effect: verify postDocumentsDocumentidAttachments contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/documents/{documentId}/import-pdf:
+    post:
+      operationId: postDocumentsDocumentidImportPdf
+      summary: POST /api/documents/{documentId}/import-pdf
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-014
+      x-related-fr:
+      - FR-014
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postDocumentsDocumentidImportPdf contract'
+      - 'auth: verify postDocumentsDocumentidImportPdf contract'
+      - 'business: verify postDocumentsDocumentidImportPdf contract'
+      - 'side-effect: verify postDocumentsDocumentidImportPdf contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/documents/{documentId}/render:
+    post:
+      operationId: postDocumentsDocumentidRender
+      summary: POST /api/documents/{documentId}/render
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      x-related-requirements:
+      - REQ-001
+      - REQ-013
+      x-related-fr:
+      - FR-001
+      - FR-013
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      x-side-effects:
+      - PostgreSQL row, audit log, search index, file storage 중 관련 대상을 변경할 수 있다.
+      x-required-tests:
+      - contract test for ApiResponse envelope
+      - integration test for validation, permission, transaction rollback
+      - 'happy: verify postDocumentsDocumentidRender contract'
+      - 'auth: verify postDocumentsDocumentidRender contract'
+      - 'business: verify postDocumentsDocumentidRender contract'
+      - 'side-effect: verify postDocumentsDocumentidRender contract'
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: GET /api/health
+      security:
+      - bearerAuth: []
+      x-related-requirements:
+      - REQ-021
+      - REQ-022
+      x-related-fr:
+      - FR-021
+      - FR-022
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/portal/documents/{documentId}:
+    get:
+      operationId: getPortalDocumentsDocumentid
+      summary: GET /api/portal/documents/{documentId}
+      security:
+      - bearerAuth: []
+      x-related-requirements:
+      - REQ-020
+      x-related-fr:
+      - FR-020
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/portal/tree:
+    get:
+      operationId: getPortalTree
+      summary: GET /api/portal/tree
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      x-related-requirements:
+      - REQ-005
+      - REQ-007
+      - REQ-019
+      x-related-fr:
+      - FR-005
+      - FR-007
+      - FR-019
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+  /api/search:
+    get:
+      operationId: getSearch
+      summary: GET /api/search
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/FilterParam'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      x-related-requirements:
+      - REQ-001
+      - REQ-018
+      x-related-fr:
+      - FR-001
+      - FR-018
+      x-business-rules:
+      - 권한, 공개 상태, 입력 검증, 감사 정책을 적용한다.
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '202':
+          description: 장기 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: 권한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: 대상 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-roles:
+      - authenticated
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: CMSSESSION
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    SortParam:
+      name: sort
+      in: query
+      schema:
+        type: string
+    FilterParam:
+      name: filter
+      in: query
+      schema:
+        type: string
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - success
+      - data
+      - error
+      - traceId
+      properties:
+        success:
+          type: boolean
+        data:
+          nullable: true
+        error:
+          nullable: true
+          $ref: '#/components/schemas/ApiError'
+        traceId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    ApiError:
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+        remediation:
+          type: string

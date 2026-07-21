@@ -1,160 +1,119 @@
-CREATE TABLE cms_users (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email         VARCHAR(255) NOT NULL UNIQUE,
-  display_name  VARCHAR(255) NOT NULL,
-  status        VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
-  last_login_at TIMESTAMPTZ,
-  created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS cms_folders (
+  folder_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_folder_id UUID REFERENCES cms_folders(folder_id),
+  name VARCHAR(200) NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT true,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  deleted BOOLEAN NOT NULL DEFAULT false,
+  created_by VARCHAR(120) NOT NULL,
+  updated_by VARCHAR(120) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT cms_folders_no_self_parent CHECK (parent_folder_id IS NULL OR parent_folder_id <> folder_id)
 );
 
-CREATE TABLE cms_user_roles (
-  user_id UUID        NOT NULL REFERENCES cms_users(id) ON DELETE CASCADE,
-  role    VARCHAR(20) NOT NULL,
-  PRIMARY KEY (user_id, role)
+COMMENT ON TABLE cms_folders IS '콘텐츠 분류를 위한 계층형 폴더. 포털에는 활성 및 미삭제 폴더만 노출된다.';
+COMMENT ON COLUMN cms_folders.parent_folder_id IS 'cms_folders.folder_id 참조 의도 (자기참조 FK 선언)';
+COMMENT ON COLUMN cms_folders.active IS 'true:활성|false:비활성';
+COMMENT ON COLUMN cms_folders.deleted IS 'true:삭제됨|false:사용중';
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_cms_folders_parent_name_active ON cms_folders (COALESCE(parent_folder_id, '00000000-0000-0000-0000-000000000000'::uuid), name) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS ix_cms_folders_parent_order ON cms_folders (parent_folder_id, sort_order) WHERE deleted = false;
+
+CREATE TABLE IF NOT EXISTS cms_documents (
+  document_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  folder_id UUID NOT NULL REFERENCES cms_folders(folder_id),
+  title VARCHAR(240) NOT NULL,
+  markdown_body TEXT NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+  display_order INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  published_at TIMESTAMPTZ,
+  deleted BOOLEAN NOT NULL DEFAULT false,
+  created_by VARCHAR(120) NOT NULL,
+  updated_by VARCHAR(120) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT ck_cms_documents_status CHECK (status IN ('DRAFT','REVIEW','PUBLISHED','UNPUBLISHED','DELETED'))
 );
 
-CREATE TABLE cms_taxonomy_terms (
-  id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  type        VARCHAR(20)  NOT NULL,
-  name        VARCHAR(255) NOT NULL,
-  slug        VARCHAR(255) NOT NULL UNIQUE,
-  description TEXT,
-  parent_id   UUID         REFERENCES cms_taxonomy_terms(id),
-  sort_order  INT,
-  created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
+COMMENT ON TABLE cms_documents IS '마크다운 원문과 게시 상태를 보존하는 CMS 문서. 발행 상태와 논리삭제 여부가 포털 및 검색 노출을 통제한다.';
+COMMENT ON COLUMN cms_documents.status IS 'DRAFT:초안|REVIEW:검토|PUBLISHED:발행|UNPUBLISHED:게시중단|DELETED:삭제';
+COMMENT ON COLUMN cms_documents.deleted IS 'true:삭제됨|false:사용중';
+COMMENT ON COLUMN cms_documents.version IS 'Document update/publish/unpublish/delete 시 애플리케이션에서 증가';
+CREATE INDEX IF NOT EXISTS ix_cms_documents_folder_order ON cms_documents (folder_id, display_order) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS ix_cms_documents_status_published ON cms_documents (status, published_at) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS ix_cms_documents_search ON cms_documents USING gin (to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(markdown_body, '')));
+
+CREATE TABLE IF NOT EXISTS cms_attachments (
+  attachment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID NOT NULL REFERENCES cms_documents(document_id),
+  file_name VARCHAR(255) NOT NULL,
+  content_type VARCHAR(120) NOT NULL,
+  size_bytes BIGINT NOT NULL,
+  storage_key VARCHAR(700) NOT NULL UNIQUE,
+  status VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE',
+  deleted BOOLEAN NOT NULL DEFAULT false,
+  created_by VARCHAR(120) NOT NULL,
+  updated_by VARCHAR(120) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT ck_cms_attachments_status CHECK (status IN ('AVAILABLE','ORPHANED','FAILED','DELETED'))
 );
 
-CREATE TABLE cms_media_assets (
-  id           UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  file_name    VARCHAR(255) NOT NULL,
-  mime_type    VARCHAR(100) NOT NULL,
-  size_bytes   BIGINT       NOT NULL,
-  storage_key  VARCHAR(500) NOT NULL,
-  alt_text     TEXT,
-  caption      TEXT,
-  usage_count  INT          NOT NULL DEFAULT 0,
-  uploaded_by  UUID         NOT NULL REFERENCES cms_users(id),
-  created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
+COMMENT ON TABLE cms_attachments IS '문서와 파일 저장소 객체를 연결하는 첨부파일 메타데이터. 삭제 또는 저장소 불일치는 상태로 추적한다.';
+COMMENT ON COLUMN cms_attachments.status IS 'AVAILABLE:사용가능|ORPHANED:고아파일|FAILED:처리실패|DELETED:삭제';
+COMMENT ON COLUMN cms_attachments.deleted IS 'true:삭제됨|false:사용중';
+COMMENT ON COLUMN cms_attachments.storage_key IS 'Attachment upload 시 애플리케이션에서 비추측 키로 생성';
+CREATE INDEX IF NOT EXISTS ix_cms_attachments_document ON cms_attachments (document_id, created_at DESC) WHERE deleted = false;
+
+CREATE TABLE IF NOT EXISTS cms_audit_logs (
+  audit_log_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor VARCHAR(120) NOT NULL,
+  action VARCHAR(60) NOT NULL,
+  target_type VARCHAR(60) NOT NULL,
+  target_id VARCHAR(120) NOT NULL,
+  detail TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE cms_content_items (
-  id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  content_type      VARCHAR(20)  NOT NULL,
-  title             VARCHAR(160) NOT NULL,
-  slug              VARCHAR(255) NOT NULL UNIQUE,
-  status            VARCHAR(20)  NOT NULL DEFAULT 'DRAFT',
-  summary           TEXT         NOT NULL DEFAULT '',
-  markdown_body     TEXT         NOT NULL,
-  visibility        VARCHAR(20)  NOT NULL DEFAULT 'PUBLIC',
-  featured_media_id UUID         REFERENCES cms_media_assets(id),
-  author_id         UUID         NOT NULL REFERENCES cms_users(id),
-  revisions_count   INT          NOT NULL DEFAULT 0,
-  published_at      TIMESTAMPTZ,
-  scheduled_at      TIMESTAMPTZ,
-  archived_at       TIMESTAMPTZ,
-  created_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  updated_at        TIMESTAMPTZ  NOT NULL DEFAULT now()
+COMMENT ON TABLE cms_audit_logs IS '콘텐츠, 파일, 운영, 사업관리 변경 이력을 append-only로 기록한다. 사용자 응답에는 내부 오류 상세 대신 traceId만 전달한다.';
+COMMENT ON COLUMN cms_audit_logs.target_id IS '대상 테이블별 PK 참조 의도 (다형성으로 FK 미선언)';
+CREATE INDEX IF NOT EXISTS ix_cms_audit_logs_created ON cms_audit_logs (created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_cms_audit_logs_target ON cms_audit_logs (target_type, target_id);
+
+CREATE TABLE IF NOT EXISTS cms_operation_jobs (
+  job_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_type VARCHAR(30) NOT NULL,
+  status VARCHAR(40) NOT NULL,
+  requested_by VARCHAR(120) NOT NULL,
+  detail TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT ck_cms_operation_jobs_type CHECK (job_type IN ('BACKUP','MIGRATION'))
 );
 
-CREATE TABLE cms_content_categories (
-  content_id UUID NOT NULL REFERENCES cms_content_items(id) ON DELETE CASCADE,
-  term_id    UUID NOT NULL REFERENCES cms_taxonomy_terms(id),
-  PRIMARY KEY (content_id, term_id)
+COMMENT ON TABLE cms_operation_jobs IS '백업/복구와 데이터 이관 장기 작업의 요청 및 결과를 추적한다. 실제 저장소 작업기는 추후 운영 환경 정책에 맞게 이 테이블을 소비한다.';
+COMMENT ON COLUMN cms_operation_jobs.status IS 'REQUESTED:요청됨|RUNNING:실행중|SUCCEEDED:성공|FAILED:실패|RESTORED:복구완료|RESTORE_REQUESTED:복구요청|PARTIAL_FAILED:부분실패';
+CREATE INDEX IF NOT EXISTS ix_cms_operation_jobs_type_created ON cms_operation_jobs (job_type, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS cms_project_records (
+  record_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  module VARCHAR(30) NOT NULL,
+  title VARCHAR(240) NOT NULL,
+  owner VARCHAR(120) NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  severity VARCHAR(30),
+  version VARCHAR(40),
+  approval_state VARCHAR(40),
+  detail TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT ck_cms_project_records_module CHECK (module IN ('SCHEDULE','SCOPE','STAFF','RISK','DELIVERABLE','CHANGE'))
 );
 
-CREATE TABLE cms_content_tags (
-  content_id UUID NOT NULL REFERENCES cms_content_items(id) ON DELETE CASCADE,
-  term_id    UUID NOT NULL REFERENCES cms_taxonomy_terms(id),
-  PRIMARY KEY (content_id, term_id)
-);
-
-CREATE TABLE cms_content_revisions (
-  id                     UUID  PRIMARY KEY DEFAULT gen_random_uuid(),
-  content_item_id        UUID  NOT NULL REFERENCES cms_content_items(id) ON DELETE CASCADE,
-  revision_number        INT   NOT NULL,
-  title_snapshot         VARCHAR(160) NOT NULL,
-  metadata_snapshot      TEXT NOT NULL DEFAULT '{}',
-  markdown_body_snapshot TEXT NOT NULL,
-  change_summary         TEXT,
-  created_by             UUID NOT NULL REFERENCES cms_users(id),
-  created_at             TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (content_item_id, revision_number)
-);
-
-CREATE TABLE cms_publication_schedules (
-  id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  content_item_id UUID        NOT NULL REFERENCES cms_content_items(id) ON DELETE CASCADE,
-  scheduled_at    TIMESTAMPTZ NOT NULL,
-  status          VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-  requested_by    UUID        NOT NULL REFERENCES cms_users(id),
-  executed_at     TIMESTAMPTZ,
-  failure_reason  TEXT,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE cms_navigation_menus (
-  id         UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  key        VARCHAR(100) NOT NULL UNIQUE,
-  label      VARCHAR(255) NOT NULL,
-  is_active  BOOLEAN      NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ  NOT NULL DEFAULT now()
-);
-
-CREATE TABLE cms_navigation_items (
-  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  menu_id     UUID        NOT NULL REFERENCES cms_navigation_menus(id) ON DELETE CASCADE,
-  label       VARCHAR(255) NOT NULL,
-  target_type VARCHAR(20) NOT NULL,
-  target_id   UUID,
-  url         TEXT,
-  parent_id   UUID        REFERENCES cms_navigation_items(id),
-  sort_order  INT         NOT NULL DEFAULT 0,
-  is_visible  BOOLEAN     NOT NULL DEFAULT true
-);
-
-CREATE TABLE cms_workflow_events (
-  id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  event_type   VARCHAR(30) NOT NULL,
-  actor_id     UUID        NOT NULL REFERENCES cms_users(id),
-  target_type  VARCHAR(50) NOT NULL,
-  target_id    UUID        NOT NULL,
-  before_state TEXT,
-  after_state  TEXT,
-  comment      TEXT,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Seed
-INSERT INTO cms_users (id, email, display_name, status) VALUES
-  ('11111111-1111-4111-8111-111111111111', 'admin@example.com',  '관리자', 'ACTIVE'),
-  ('22222222-2222-4222-8222-222222222222', 'editor@example.com', '편집자', 'ACTIVE'),
-  ('33333333-3333-4333-8333-333333333333', 'author@example.com', '작성자', 'ACTIVE');
-
-INSERT INTO cms_user_roles VALUES
-  ('11111111-1111-4111-8111-111111111111', 'ADMIN'),
-  ('22222222-2222-4222-8222-222222222222', 'EDITOR'),
-  ('33333333-3333-4333-8333-333333333333', 'AUTHOR');
-
-INSERT INTO cms_taxonomy_terms (id, type, name, slug, description, sort_order) VALUES
-  ('44444444-4444-4444-8444-444444444444', 'CATEGORY', '공지', 'notice', '공개 공지 콘텐츠', 1),
-  ('55555555-5555-4555-8555-555555555555', 'TAG', 'CMS', 'cms', 'CMS 운영 태그', 1);
-
-INSERT INTO cms_content_items (id, content_type, title, slug, status, summary, markdown_body, visibility, author_id, revisions_count, published_at)
-VALUES ('66666666-6666-4666-8666-666666666666', 'ARTICLE', '첫 번째 CMS 소식', 'first-cms-news', 'PUBLISHED',
-        '마크다운 기반 CMS의 첫 게시글', E'# 첫 번째 CMS 소식\n\n본문을 **Markdown**으로 작성합니다.',
-        'PUBLIC', '33333333-3333-4333-8333-333333333333', 1, now());
-
-INSERT INTO cms_content_categories VALUES ('66666666-6666-4666-8666-666666666666','44444444-4444-4444-8444-444444444444');
-INSERT INTO cms_content_tags     VALUES ('66666666-6666-4666-8666-666666666666','55555555-5555-4555-8555-555555555555');
-
-INSERT INTO cms_content_revisions (id, content_item_id, revision_number, title_snapshot, metadata_snapshot, markdown_body_snapshot, change_summary, created_by)
-VALUES ('77777777-7777-4777-8777-777777777777', '66666666-6666-4666-8666-666666666666', 1,
-        '첫 번째 CMS 소식', '{}', E'# 첫 번째 CMS 소식\n\n본문을 **Markdown**으로 작성합니다.', '초기 게시', '33333333-3333-4333-8333-333333333333');
-
-INSERT INTO cms_navigation_menus (id, key, label) VALUES ('88888888-8888-4888-8888-888888888888', 'primary', 'Primary Menu');
-INSERT INTO cms_navigation_items (id, menu_id, label, target_type, target_id, sort_order) VALUES
-  ('99999999-9999-4999-8999-999999999999', '88888888-8888-4888-8888-888888888888', '공지', 'CATEGORY', '44444444-4444-4444-8444-444444444444', 1);
+COMMENT ON TABLE cms_project_records IS '일정, 범위, 인력, 위험, 산출물, 변경 요청을 모듈별로 관리하는 사업관리 레코드. 모듈별 상태 enum은 애플리케이션 검증과 컬럼 설명으로 추적한다.';
+COMMENT ON COLUMN cms_project_records.status IS 'PLANNED:계획됨|IN_PROGRESS:진행중|DELAYED:지연|DONE:완료|REGISTERED:등록|REVIEWING:검토중|HOLD:보류|EXCLUDED:제외|ACTIVE:활성|INACTIVE:비활성|PENDING_CHANGE:변경대기|ANALYZING:분석중|ACTIONING:조치중|RESOLVED:해결|CLOSED:종료|DRAFT:초안|SUBMITTED:제출|APPROVED:승인|REJECTED:반려|REQUESTED:요청|IMPACT_ANALYSIS:영향분석|PENDING_APPROVAL:승인대기|APPLYING:반영중|VERIFIED:검증완료';
+COMMENT ON COLUMN cms_project_records.severity IS 'LOW:낮음|MEDIUM:보통|HIGH:높음|CRITICAL:치명';
+COMMENT ON COLUMN cms_project_records.approval_state IS 'DRAFT:초안|SUBMITTED:제출|APPROVED:승인|REJECTED:반려|PENDING:대기';
+CREATE INDEX IF NOT EXISTS ix_cms_project_records_module_created ON cms_project_records (module, created_at DESC);
