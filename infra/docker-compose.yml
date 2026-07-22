@@ -15,11 +15,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   backend:
     image: noticeboard-backend:0.1.0
     pull_policy: build
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-noticeboard}
@@ -40,16 +41,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
   frontend:
     image: noticeboard-frontend:0.1.0
     pull_policy: build
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
     ports:
       - "3000:80"
     depends_on:
       backend:
         condition: service_healthy
+
 volumes:
   postgres-data:

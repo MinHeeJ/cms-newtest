@@ -1,0 +1,1083 @@
+openapi: 3.1.0
+info:
+  title: 신규생성테스트 CMS API
+  version: 0.1.0
+  description: 커뮤니티형 공지사항 웹 애플리케이션 REST API contract. 모든 JSON 응답은 ApiResponse envelope를 사용한다.
+servers:
+- url: http://localhost:8080
+security:
+- bearerAuth: []
+tags:
+- name: Auth
+- name: Notices
+- name: Comments
+- name: Notifications
+- name: Admin
+- name: System
+paths:
+  /api/auth/signup:
+    post:
+      tags:
+      - Auth
+      operationId: signup
+      security: []
+      x-related-requirements:
+      - REQ-002
+      - REQ-011
+      x-business-rules:
+      - email은 UNIQUE
+      - password는 BCrypt hash로 저장
+      - role 기본값은 USER
+      x-side-effects:
+      - users row 생성
+      x-required-tests:
+      - 'MockMvc: valid signup returns 201 envelope'
+      - 'MockMvc: duplicate email returns 400 ApiResponse<ApiError>'
+      - 'happy: verify signup contract'
+      - 'auth: verify signup contract'
+      - 'validation: verify signup contract'
+      - 'business: verify signup contract'
+      - 'side-effect: verify signup contract'
+      x-state-transitions:
+      - 'users: absent -> created'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/UserEnvelope'
+        '400':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: login
+      security: []
+      x-related-requirements:
+      - REQ-002
+      - REQ-011
+      x-business-rules:
+      - Access Token JWT만 반환
+      - Refresh Token은 반환하지 않음
+      x-side-effects:
+      - none
+      x-required-tests:
+      - 'MockMvc: valid login returns token'
+      - 'MockMvc: invalid credential returns 401 envelope'
+      - 'happy: verify login contract'
+      - 'auth: verify login contract'
+      - 'validation: verify login contract'
+      - 'business: verify login contract'
+      - 'side-effect: verify login contract'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthTokenEnvelope'
+        '401':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/auth/me:
+    get:
+      tags:
+      - Auth
+      operationId: getCurrentUser
+      x-related-requirements:
+      - REQ-002
+      responses:
+        '200':
+          $ref: '#/components/responses/UserEnvelope'
+        '401':
+          $ref: '#/components/responses/ErrorEnvelope'
+    put:
+      tags:
+      - Auth
+      operationId: updateCurrentUser
+      x-related-requirements:
+      - REQ-002
+      x-business-rules:
+      - nickname만 수정
+      x-side-effects:
+      - users.nickname, users.updated_at 변경
+      x-required-tests:
+      - 'MockMvc: authenticated nickname update'
+      - 'MockMvc: unauthenticated returns 401'
+      - 'happy: verify updateCurrentUser contract'
+      - 'validation: verify updateCurrentUser contract'
+      - 'business: verify updateCurrentUser contract'
+      - 'side-effect: verify updateCurrentUser contract'
+      x-state-transitions:
+      - 'users.nickname: old -> new'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserEnvelope'
+        '400':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '401':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/notices:
+    get:
+      tags:
+      - Notices
+      operationId: listNotices
+      security: []
+      x-related-requirements:
+      - REQ-003
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/KeywordParam'
+      - $ref: '#/components/parameters/SortParam'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/NoticePageEnvelope'
+        '400':
+          $ref: '#/components/responses/ErrorEnvelope'
+    post:
+      tags:
+      - Notices
+      operationId: createNotice
+      x-related-requirements:
+      - REQ-003
+      - REQ-011
+      x-business-rules:
+      - ADMIN role만 작성 가능
+      x-side-effects:
+      - notices row 생성
+      x-required-tests:
+      - 'MockMvc: ADMIN create succeeds'
+      - 'MockMvc: USER create returns 403'
+      - 'happy: verify createNotice contract'
+      - 'auth: verify createNotice contract'
+      - 'validation: verify createNotice contract'
+      - 'business: verify createNotice contract'
+      - 'side-effect: verify createNotice contract'
+      x-state-transitions:
+      - 'notices: absent -> created'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoticeRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/NoticeEnvelope'
+        '400':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '403':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/notices/{id}:
+    parameters:
+    - $ref: '#/components/parameters/IdParam'
+    get:
+      tags:
+      - Notices
+      operationId: getNotice
+      security: []
+      x-related-requirements:
+      - REQ-003
+      x-business-rules:
+      - 비로그인/USER는 published=true만 조회
+      - ADMIN은 전체 조회
+      x-side-effects:
+      - notices.view_count +1
+      x-state-transitions:
+      - 'notices.view_count: n -> n+1'
+      responses:
+        '200':
+          $ref: '#/components/responses/NoticeEnvelope'
+        '403':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '404':
+          $ref: '#/components/responses/ErrorEnvelope'
+    put:
+      tags:
+      - Notices
+      operationId: updateNotice
+      x-related-requirements:
+      - REQ-003
+      x-business-rules:
+      - ADMIN role만 수정 가능
+      x-side-effects:
+      - notices row 변경
+      x-required-tests:
+      - 'MockMvc: ADMIN update succeeds'
+      - 'MockMvc: USER update returns 403'
+      - 'happy: verify updateNotice contract'
+      - 'auth: verify updateNotice contract'
+      - 'validation: verify updateNotice contract'
+      - 'business: verify updateNotice contract'
+      - 'side-effect: verify updateNotice contract'
+      x-state-transitions:
+      - 'notices.title/content/published: old -> new'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoticeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/NoticeEnvelope'
+        '400':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '403':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '404':
+          $ref: '#/components/responses/ErrorEnvelope'
+    delete:
+      tags:
+      - Notices
+      operationId: deleteNotice
+      x-related-requirements:
+      - REQ-003
+      - REQ-008
+      x-business-rules:
+      - ADMIN role만 삭제 가능
+      - 공지 삭제 시 댓글 CASCADE 삭제
+      x-side-effects:
+      - notices row 삭제
+      - comments rows cascade 삭제
+      x-required-tests:
+      - 'MockMvc: ADMIN delete succeeds'
+      - 'MockMvc: comments cascade deleted'
+      - 'happy: verify deleteNotice contract'
+      - 'auth: verify deleteNotice contract'
+      - 'validation: verify deleteNotice contract'
+      - 'business: verify deleteNotice contract'
+      - 'side-effect: verify deleteNotice contract'
+      x-state-transitions:
+      - 'notices: existing -> deleted'
+      - 'comments: children -> deleted'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyEnvelope'
+        '403':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '404':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/notices/{id}/comments:
+    parameters:
+    - $ref: '#/components/parameters/IdParam'
+    get:
+      tags:
+      - Comments
+      operationId: listComments
+      security: []
+      x-related-requirements:
+      - REQ-004
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/CommentPageEnvelope'
+        '404':
+          $ref: '#/components/responses/ErrorEnvelope'
+    post:
+      tags:
+      - Comments
+      operationId: createComment
+      x-related-requirements:
+      - REQ-004
+      - REQ-005
+      - REQ-017
+      x-business-rules:
+      - 로그인 사용자만 작성
+      - 대댓글 없음
+      - 본인 댓글 제외하고 공지 작성자에게 알림 생성
+      x-side-effects:
+      - comments row 생성
+      - notifications row 생성 가능
+      x-required-tests:
+      - 'MockMvc: authenticated create comment'
+      - 'MockMvc: creates NEW_COMMENT notification except self-comment'
+      - 'happy: verify createComment contract'
+      - 'validation: verify createComment contract'
+      - 'business: verify createComment contract'
+      - 'side-effect: verify createComment contract'
+      x-state-transitions:
+      - 'comments: absent -> created'
+      - 'notifications: absent -> created when recipient differs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CommentEnvelope'
+        '400':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '401':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '404':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/comments/{id}:
+    parameters:
+    - $ref: '#/components/parameters/IdParam'
+    put:
+      tags:
+      - Comments
+      operationId: updateComment
+      x-related-requirements:
+      - REQ-004
+      x-business-rules:
+      - 작성자 본인만 수정
+      x-side-effects:
+      - comments.content 변경
+      x-required-tests:
+      - 'MockMvc: owner update succeeds'
+      - 'MockMvc: non-owner update returns 403'
+      - 'happy: verify updateComment contract'
+      - 'auth: verify updateComment contract'
+      - 'validation: verify updateComment contract'
+      - 'business: verify updateComment contract'
+      - 'side-effect: verify updateComment contract'
+      x-state-transitions:
+      - 'comments.content: old -> new'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CommentEnvelope'
+        '400':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '403':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '404':
+          $ref: '#/components/responses/ErrorEnvelope'
+    delete:
+      tags:
+      - Comments
+      operationId: deleteComment
+      x-related-requirements:
+      - REQ-004
+      x-business-rules:
+      - 작성자 본인 또는 ADMIN만 삭제
+      x-side-effects:
+      - comments row 삭제
+      x-required-tests:
+      - 'MockMvc: owner delete succeeds'
+      - 'MockMvc: admin delete succeeds'
+      - 'MockMvc: non-owner returns 403'
+      - 'happy: verify deleteComment contract'
+      - 'auth: verify deleteComment contract'
+      - 'validation: verify deleteComment contract'
+      - 'business: verify deleteComment contract'
+      - 'side-effect: verify deleteComment contract'
+      x-state-transitions:
+      - 'comments: existing -> deleted'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyEnvelope'
+        '403':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '404':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/notifications:
+    get:
+      tags:
+      - Notifications
+      operationId: listNotifications
+      x-related-requirements:
+      - REQ-005
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - name: isRead
+        in: query
+        schema:
+          type: boolean
+        description: 읽음 상태 필터
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationPageEnvelope'
+        '401':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/notifications/{id}/read:
+    patch:
+      tags:
+      - Notifications
+      operationId: markNotificationRead
+      x-related-requirements:
+      - REQ-005
+      x-business-rules:
+      - 본인 알림만 읽음 처리
+      x-side-effects:
+      - notifications.is_read=true
+      x-required-tests:
+      - 'MockMvc: owner mark read'
+      - 'MockMvc: other user notification returns 403/404'
+      - 'happy: verify markNotificationRead contract'
+      - 'auth: verify markNotificationRead contract'
+      - 'validation: verify markNotificationRead contract'
+      - 'business: verify markNotificationRead contract'
+      - 'side-effect: verify markNotificationRead contract'
+      x-state-transitions:
+      - 'notifications.is_read: false -> true'
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationEnvelope'
+        '403':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '404':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/notifications/read-all:
+    patch:
+      tags:
+      - Notifications
+      operationId: markAllNotificationsRead
+      x-related-requirements:
+      - REQ-005
+      x-business-rules:
+      - 로그인 사용자의 알림만 전체 읽음 처리
+      x-side-effects:
+      - current user's notifications.is_read=true
+      x-required-tests:
+      - 'MockMvc: mark all read affects only current user'
+      - 'happy: verify markAllNotificationsRead contract'
+      - 'auth: verify markAllNotificationsRead contract'
+      - 'validation: verify markAllNotificationsRead contract'
+      - 'business: verify markAllNotificationsRead contract'
+      - 'side-effect: verify markAllNotificationsRead contract'
+      x-state-transitions:
+      - 'notifications.is_read: false -> true for current user'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationListEnvelope'
+        '401':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/admin/users:
+    get:
+      tags:
+      - Admin
+      operationId: listAdminUsers
+      x-related-requirements:
+      - REQ-006
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/KeywordParam'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/UserPageEnvelope'
+        '403':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/admin/users/{id}/role:
+    patch:
+      tags:
+      - Admin
+      operationId: updateUserRole
+      x-related-requirements:
+      - REQ-006
+      x-business-rules:
+      - ADMIN만 role 변경
+      - role은 USER 또는 ADMIN
+      x-side-effects:
+      - users.role 변경
+      x-required-tests:
+      - 'MockMvc: admin role update'
+      - 'MockMvc: invalid role returns 400'
+      - 'MockMvc: USER returns 403'
+      - 'happy: verify updateUserRole contract'
+      - 'auth: verify updateUserRole contract'
+      - 'validation: verify updateUserRole contract'
+      - 'business: verify updateUserRole contract'
+      - 'side-effect: verify updateUserRole contract'
+      x-state-transitions:
+      - 'users.role: USER <-> ADMIN'
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserEnvelope'
+        '400':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '403':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '404':
+          $ref: '#/components/responses/ErrorEnvelope'
+  /api/health:
+    get:
+      tags:
+      - System
+      operationId: health
+      security: []
+      x-related-requirements:
+      - REQ-007
+      - REQ-015
+      responses:
+        '200':
+          $ref: '#/components/responses/HealthEnvelope'
+        '500':
+          $ref: '#/components/responses/ErrorEnvelope'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    KeywordParam:
+      name: keyword
+      in: query
+      schema:
+        type: string
+      description: 제목+내용 또는 사용자 email/nickname LIKE 검색
+    SortParam:
+      name: sort
+      in: query
+      schema:
+        type: string
+        default: created_at
+        desc: null
+      description: created_at/title/view_count 정렬
+  responses:
+    ErrorEnvelope:
+      description: Error envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                success:
+                  const: false
+                data:
+                  type: 'null'
+                error:
+                  $ref: '#/components/schemas/ApiError'
+    EmptyEnvelope:
+      description: Empty success envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  type: 'null'
+    AuthTokenEnvelope:
+      description: Auth token envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/AuthToken'
+    UserEnvelope:
+      description: User envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/User'
+    UserPageEnvelope:
+      description: User page envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/UserPage'
+    NoticeEnvelope:
+      description: Notice envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/Notice'
+    NoticePageEnvelope:
+      description: Notice page envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/NoticePage'
+    CommentEnvelope:
+      description: Comment envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/Comment'
+    CommentPageEnvelope:
+      description: Comment page envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/CommentPage'
+    NotificationEnvelope:
+      description: Notification envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/Notification'
+    NotificationListEnvelope:
+      description: Notification list envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Notification'
+    NotificationPageEnvelope:
+      description: Notification page envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/NotificationPage'
+    HealthEnvelope:
+      description: Health envelope
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/ApiResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/HealthStatus'
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - success
+      - data
+      - error
+      - message
+      properties:
+        success:
+          type: boolean
+        data: {}
+        error:
+          oneOf:
+          - $ref: '#/components/schemas/ApiError'
+          - type: 'null'
+        message:
+          oneOf:
+          - type: string
+          - type: 'null'
+    ApiError:
+      type: string
+      enum:
+      - VALIDATION_ERROR
+      - UNAUTHORIZED
+      - FORBIDDEN
+      - NOT_FOUND
+      - INTERNAL_SERVER_ERROR
+      - DUPLICATE_EMAIL
+    SignupRequest:
+      type: object
+      required:
+      - email
+      - password
+      - nickname
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        nickname:
+          type: string
+          minLength: 1
+    LoginRequest:
+      type: object
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    UpdateMeRequest:
+      type: object
+      required:
+      - nickname
+      properties:
+        nickname:
+          type: string
+          minLength: 1
+    RoleUpdateRequest:
+      type: object
+      required:
+      - role
+      properties:
+        role:
+          $ref: '#/components/schemas/UserRole'
+    NoticeRequest:
+      type: object
+      required:
+      - title
+      - content
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1
+        published:
+          type: boolean
+          default: true
+    CommentRequest:
+      type: object
+      required:
+      - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+    AuthToken:
+      type: object
+      required:
+      - token
+      properties:
+        token:
+          type: string
+    UserRole:
+      type: string
+      enum:
+      - USER
+      - ADMIN
+    User:
+      type: object
+      required:
+      - id
+      - email
+      - nickname
+      - role
+      - created_at
+      - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+        nickname:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Notice:
+      type: object
+      required:
+      - id
+      - title
+      - content
+      - author_id
+      - published
+      - view_count
+      - created_at
+      - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        content:
+          type: string
+        author_id:
+          type: integer
+          format: int64
+        published:
+          type: boolean
+        view_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Comment:
+      type: object
+      required:
+      - id
+      - notice_id
+      - author_id
+      - content
+      - created_at
+      - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        notice_id:
+          type: integer
+          format: int64
+        author_id:
+          type: integer
+          format: int64
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Notification:
+      type: object
+      required:
+      - id
+      - user_id
+      - type
+      - message
+      - is_read
+      - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        user_id:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum:
+          - NEW_COMMENT
+        message:
+          type: string
+        reference_id:
+          type: integer
+          format: int64
+          nullable: true
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    PageMeta:
+      type: object
+      required:
+      - page
+      - size
+      - total_elements
+      - total_pages
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        total_elements:
+          type: integer
+        total_pages:
+          type: integer
+    UserPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+    NoticePage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notice'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+    CommentPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+    NotificationPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+    HealthStatus:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - UP
