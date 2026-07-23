@@ -1,21 +1,19 @@
-import type { RouteObject } from "react-router-dom";
-import { Navigate } from "react-router-dom";
-import { AuditLogPage } from "../features/audit/AuditLogPage";
-import { ContentEditorPage } from "../features/content/ContentEditorPage";
-import { ContentListPage } from "../features/content/ContentListPage";
-import { ReviewQueuePage } from "../features/content/ReviewQueuePage";
-import { RevisionHistoryPage } from "../features/content/RevisionHistoryPage";
-import { ScheduledContentPage } from "../features/content/ScheduledContentPage";
-import { DashboardPage } from "../features/dashboard/DashboardPage";
-import { SettingsPage } from "../features/dashboard/SettingsPage";
-import { LoginPage } from "../features/auth/LoginPage";
-import { MediaLibraryPage } from "../features/media/MediaLibraryPage";
-import { NavigationBuilderPage } from "../features/navigation/NavigationBuilderPage";
-import { TaxonomyManagerPage } from "../features/taxonomy/TaxonomyManagerPage";
-import { UserRoleManagerPage } from "../features/users/UserRoleManagerPage";
 import type { RoleName } from "../services/cmsTypes";
+export { appRoutes } from "./AppRouter";
 
-export type NavigationIcon = "dashboard" | "content" | "editor" | "review" | "revision" | "media" | "taxonomy" | "navigation" | "users" | "audit" | "settings" | "boxes";
+export type NavigationIcon =
+  | "dashboard"
+  | "content"
+  | "editor"
+  | "review"
+  | "revision"
+  | "media"
+  | "taxonomy"
+  | "navigation"
+  | "users"
+  | "audit"
+  | "settings"
+  | "boxes";
 
 export interface NavigationItemConfig {
   label: string;
@@ -24,46 +22,79 @@ export interface NavigationItemConfig {
   roles: RoleName[];
 }
 
-export const navigationGroups: Array<{ label: string; items: NavigationItemConfig[] }> = [
-  { label: "Home", items: [{ label: "Dashboard", path: "/", icon: "dashboard", roles: ["ADMIN", "EDITOR", "VIEWER"] }] },
+const allRoles: RoleName[] = ["ADMIN", "EDITOR", "AUTHOR", "VIEWER"];
+
+export const navigationGroups: Array<{
+  label: string;
+  items: NavigationItemConfig[];
+}> = [
   {
-    label: "Content",
+    label: "확인·승인 관리",
     items: [
-      { label: "전체 콘텐츠", path: "/content", icon: "content", roles: ["ADMIN", "EDITOR", "AUTHOR", "VIEWER"] },
-      { label: "새 콘텐츠", path: "/content/new", icon: "editor", roles: ["ADMIN", "EDITOR", "AUTHOR"] },
-      { label: "검토 대기", path: "/review", icon: "review", roles: ["ADMIN", "EDITOR"] },
-      { label: "Revision 이력", path: "/revisions", icon: "revision", roles: ["ADMIN", "EDITOR", "AUTHOR"] },
-      { label: "예약 게시", path: "/scheduled", icon: "revision", roles: ["ADMIN", "EDITOR"] }
-    ]
+      {
+        label: "담당자 인증 관리",
+        path: "/operations/verifications",
+        icon: "review",
+        roles: allRoles,
+      },
+      {
+        label: "지급승인 관리",
+        path: "/operations/payment-approvals",
+        icon: "audit",
+        roles: allRoles,
+      },
+    ],
   },
   {
-    label: "Operate",
+    label: "의견·반려 관리",
     items: [
-      { label: "미디어", path: "/media", icon: "media", roles: ["ADMIN", "EDITOR", "AUTHOR", "VIEWER"] },
-      { label: "분류", path: "/taxonomy", icon: "taxonomy", roles: ["ADMIN", "EDITOR"] },
-      { label: "내비게이션", path: "/navigation", icon: "navigation", roles: ["ADMIN", "EDITOR"] },
-      { label: "사용자", path: "/users", icon: "users", roles: ["ADMIN"] },
-      { label: "감사 로그", path: "/audit", icon: "audit", roles: ["ADMIN", "EDITOR"] },
-      { label: "설정", path: "/settings", icon: "settings", roles: ["ADMIN"] }
-    ]
-  }
-];
-
-export const appRoutes: RouteObject[] = [
-  { path: "/login", element: <LoginPage /> },
-  { path: "/", element: <DashboardPage /> },
-  { path: "/content", element: <ContentListPage /> },
-  { path: "/content/new", element: <ContentEditorPage /> },
-  { path: "/content/:contentId/edit", element: <ContentEditorPage /> },
-  { path: "/content/:contentId/revisions", element: <RevisionHistoryPage /> },
-  { path: "/revisions", element: <RevisionHistoryPage /> },
-  { path: "/review", element: <ReviewQueuePage /> },
-  { path: "/scheduled", element: <ScheduledContentPage /> },
-  { path: "/media", element: <MediaLibraryPage /> },
-  { path: "/taxonomy", element: <TaxonomyManagerPage /> },
-  { path: "/navigation", element: <NavigationBuilderPage /> },
-  { path: "/users", element: <UserRoleManagerPage /> },
-  { path: "/audit", element: <AuditLogPage /> },
-  { path: "/settings", element: <SettingsPage /> },
-  { path: "*", element: <Navigate to="/" replace /> }
+      {
+        label: "반려사유 관리",
+        path: "/operations/rejection-reasons",
+        icon: "taxonomy",
+        roles: allRoles,
+      },
+      {
+        label: "이의신청 의견 관리",
+        path: "/operations/appeal-opinions",
+        icon: "content",
+        roles: allRoles,
+      },
+    ],
+  },
+  {
+    label: "일괄처리 관리",
+    items: [
+      {
+        label: "평가자료 생성",
+        path: "/operations/evaluation-generate",
+        icon: "boxes",
+        roles: allRoles,
+      },
+      {
+        label: "평가자료 삭제",
+        path: "/operations/evaluation-delete",
+        icon: "revision",
+        roles: allRoles,
+      },
+      {
+        label: "점수 재계산",
+        path: "/operations/score-recalculate",
+        icon: "settings",
+        roles: allRoles,
+      },
+      {
+        label: "평가 확정·취소",
+        path: "/operations/final-evaluations",
+        icon: "users",
+        roles: allRoles,
+      },
+      {
+        label: "처리 결과 조회",
+        path: "/operations/batch-results",
+        icon: "dashboard",
+        roles: allRoles,
+      },
+    ],
+  },
 ];
