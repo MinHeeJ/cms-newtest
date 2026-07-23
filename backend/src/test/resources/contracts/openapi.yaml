@@ -1,0 +1,1804 @@
+openapi: 3.0.3
+info:
+  title: 교수수업평가시스템 공통 운영 관리 API
+  version: 0.1.0
+  description: 'CMS-1304 cms-new 공통 운영 관리 REST API contract. 모든 성공/오류 JSON 응답은 ApiResponse
+    envelope를 사용한다.
+
+    '
+servers:
+- url: http://localhost:8080
+security:
+- bearerAuth: []
+paths:
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: Health endpoint
+      x-related-requirements:
+      - REQ-012
+      - REQ-013
+      - REQ-014
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    x-related-requirements:
+    - REQ-012
+    - REQ-013
+    - REQ-014
+  /api/verifications:
+    get:
+      operationId: listVerifications
+      summary: 담당 범위 미확인 실적 조회
+      x-related-requirements:
+      - REQ-001
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-043
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - UNVERIFIED
+          - CERTIFIED
+          - REJECTED
+          - CANCELED
+      - name: organizationId
+        in: query
+        schema:
+          type: string
+      - name: ownerId
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/VerificationListResponse'
+        '403':
+          description: 권한 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-043
+      x-source-original-ids:
+      - CMN-FR-043
+    x-related-requirements:
+    - REQ-001
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-043
+    x-source-original-ids:
+    - CMN-FR-043
+  /api/verifications/{recordId}/decision:
+    post:
+      operationId: decideVerification
+      summary: 담당자 인증·반려·인증취소
+      x-related-requirements:
+      - REQ-001
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-043
+      x-business-rules:
+      - 담당 데이터 범위 안의 실적만 처리
+      - 처리 의견과 근거 필수 연결
+      - 원천 실적 수정 금지
+      x-side-effects:
+      - VerificationDecision 생성
+      - VerificationRecord.verification_status 변경
+      - audit 기록
+      x-required-tests:
+      - 담당 범위 내 인증 성공
+      - 담당 범위 밖 403
+      - 의견/근거 누락 400
+      - 원천 실적 불변
+      - 'happy: verify decideVerification contract'
+      - 'auth: verify decideVerification contract'
+      - 'validation: verify decideVerification contract'
+      - 'business: verify decideVerification contract'
+      - 'side-effect: verify decideVerification contract'
+      x-state-transitions:
+        UNVERIFIED:
+        - CERTIFIED
+        - REJECTED
+        CERTIFIED:
+        - CANCELED
+        REJECTED:
+        - CANCELED
+      parameters:
+      - name: recordId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationDecisionRequest'
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/VerificationResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 권한 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-043
+      x-source-original-ids:
+      - CMN-FR-043
+    x-related-requirements:
+    - REQ-001
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-043
+    x-source-original-ids:
+    - CMN-FR-043
+  /api/payment-approvals:
+    get:
+      operationId: listPaymentApprovals
+      summary: 학술지원금 지급승인 대상 조회
+      x-related-requirements:
+      - REQ-002
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-044
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - $ref: '#/components/parameters/SortParam'
+      - name: approvalStatus
+        in: query
+        schema:
+          type: string
+          enum:
+          - PENDING
+          - APPROVED
+          - REJECTED
+          - CANCELED
+      - name: applicantId
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/PaymentApprovalListResponse'
+        '403':
+          description: 권한 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-044
+      x-source-original-ids:
+      - CMN-FR-044
+    x-related-requirements:
+    - REQ-002
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-044
+    x-source-original-ids:
+    - CMN-FR-044
+  /api/payment-approvals/{applicationId}/decision:
+    post:
+      operationId: decidePaymentApproval
+      summary: 지급승인·반려·승인취소
+      x-related-requirements:
+      - REQ-002
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-044
+      x-business-rules:
+      - 승인 권한과 데이터 범위 필요
+      - 실제 금융거래 실행 금지
+      - 신청정보와 대상 업적 수정 금지
+      x-side-effects:
+      - PaymentDecision 생성
+      - PaymentApproval.approval_status 변경
+      - audit 기록
+      x-required-tests:
+      - 승인 성공
+      - 권한 없음 403
+      - 금융거래 side effect 없음
+      - 처리자/일시 재조회
+      - 'happy: verify decidePaymentApproval contract'
+      - 'auth: verify decidePaymentApproval contract'
+      - 'validation: verify decidePaymentApproval contract'
+      - 'business: verify decidePaymentApproval contract'
+      - 'side-effect: verify decidePaymentApproval contract'
+      x-state-transitions:
+        PENDING:
+        - APPROVED
+        - REJECTED
+        APPROVED:
+        - CANCELED
+        REJECTED:
+        - CANCELED
+      parameters:
+      - name: applicationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentDecisionRequest'
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/PaymentApprovalResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 권한 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-044
+      x-source-original-ids:
+      - CMN-FR-044
+    x-related-requirements:
+    - REQ-002
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-044
+    x-source-original-ids:
+    - CMN-FR-044
+  /api/rejection-reasons:
+    get:
+      operationId: listRejectionReasons
+      summary: 업무유형별 반려사유 조회
+      x-related-requirements:
+      - REQ-003
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-045
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - name: businessType
+        in: query
+        schema:
+          type: string
+      - name: active
+        in: query
+        schema:
+          type: boolean
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/RejectionReasonListResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-045
+      x-state-transitions:
+        ACTIVE:
+        - ACTIVE
+        INACTIVE:
+        - INACTIVE
+      x-business-rules:
+      - 업무유형별 표준 반려사유 조회는 read-only이며 상태를 변경하지 않는다.
+      x-source-original-ids:
+      - CMN-FR-045
+    post:
+      operationId: createRejectionReason
+      summary: 표준 반려사유 등록
+      x-related-requirements:
+      - REQ-003
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-045
+      x-business-rules:
+      - 업무유형별 코드 unique
+      - 추가 의견 허용 여부 명시
+      x-side-effects:
+      - RejectionReason 생성
+      - audit 기록
+      x-required-tests:
+      - 등록 성공
+      - 업무유형별 중복 코드 409
+      - 추가 의견 허용 여부 저장
+      - 'happy: verify createRejectionReason contract'
+      - 'auth: verify createRejectionReason contract'
+      - 'validation: verify createRejectionReason contract'
+      - 'business: verify createRejectionReason contract'
+      - 'side-effect: verify createRejectionReason contract'
+      x-state-transitions:
+        NONE:
+        - ACTIVE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectionReasonRequest'
+      responses:
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/RejectionReasonResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 중복
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-045
+      x-source-original-ids:
+      - CMN-FR-045
+    x-related-requirements:
+    - REQ-003
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-045
+    x-source-original-ids:
+    - CMN-FR-045
+  /api/rejection-reasons/{reasonId}:
+    put:
+      operationId: updateRejectionReason
+      summary: 표준 반려사유 수정
+      x-related-requirements:
+      - REQ-003
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-045
+      x-business-rules:
+      - 업무유형 구분 유지
+      - 사용 중인 사유 hard delete 금지
+      x-side-effects:
+      - RejectionReason 수정
+      - audit 기록
+      x-required-tests:
+      - 수정 성공
+      - 존재하지 않는 reasonId 404
+      - 업무유형별 선택 목록 반영
+      - 'happy: verify updateRejectionReason contract'
+      - 'auth: verify updateRejectionReason contract'
+      - 'validation: verify updateRejectionReason contract'
+      - 'business: verify updateRejectionReason contract'
+      - 'side-effect: verify updateRejectionReason contract'
+      x-state-transitions:
+        ACTIVE:
+        - ACTIVE
+      parameters:
+      - name: reasonId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectionReasonRequest'
+      responses:
+        '200':
+          description: 수정 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/RejectionReasonResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-045
+      x-source-original-ids:
+      - CMN-FR-045
+    x-related-requirements:
+    - REQ-003
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-045
+    x-source-original-ids:
+    - CMN-FR-045
+  /api/appeal-opinions:
+    get:
+      operationId: listAppealOpinions
+      summary: 이의신청 의견 조회
+      x-related-requirements:
+      - REQ-004
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-046
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - name: processingResult
+        in: query
+        schema:
+          type: string
+          enum:
+          - PENDING
+          - ACCEPTED
+          - REJECTED
+          - PARTIAL
+      - name: applicantId
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/AppealOpinionListResponse'
+        '403':
+          description: 권한 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-046
+      x-source-original-ids:
+      - CMN-FR-046
+    x-related-requirements:
+    - REQ-004
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-046
+    x-source-original-ids:
+    - CMN-FR-046
+  /api/appeal-opinions/{appealId}/review:
+    post:
+      operationId: reviewAppealOpinion
+      summary: 이의신청 검토 의견·처리결과 등록
+      x-related-requirements:
+      - REQ-004
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-046
+      x-business-rules:
+      - 검토자 의견과 처리결과는 해당 이의신청 건에만 연결
+      - 원평가 점수 직접 변경 금지
+      x-side-effects:
+      - AppealOpinion 처리결과 변경
+      - review audit 기록
+      x-required-tests:
+      - 검토 저장 성공
+      - 다른 신청 건 연결 방지
+      - 원평가 점수 불변
+      - 'happy: verify reviewAppealOpinion contract'
+      - 'auth: verify reviewAppealOpinion contract'
+      - 'validation: verify reviewAppealOpinion contract'
+      - 'business: verify reviewAppealOpinion contract'
+      - 'side-effect: verify reviewAppealOpinion contract'
+      x-state-transitions:
+        PENDING:
+        - ACCEPTED
+        - REJECTED
+        - PARTIAL
+      parameters:
+      - name: appealId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppealReviewRequest'
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/AppealOpinionResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-046
+      x-source-original-ids:
+      - CMN-FR-046
+    x-related-requirements:
+    - REQ-004
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-046
+    x-source-original-ids:
+    - CMN-FR-046
+  /api/evaluation-batches/generate:
+    post:
+      operationId: generateEvaluationBatch
+      summary: 평가자료 일괄 생성
+      x-related-requirements:
+      - REQ-005
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-047
+      x-business-rules:
+      - 선택 조건과 생성기준 대상 원천 실적만 사용
+      - 원천 실적 수정 금지
+      - 점수 재계산/최종확정 수행 금지
+      x-side-effects:
+      - EvaluationBatch 생성
+      - EvaluationMaterial 생성
+      - BatchResult 생성
+      x-required-tests:
+      - 조건 확인
+      - 대상 원천 실적만 생성
+      - 생성기준/결과건수 조회
+      - 원천 실적 불변
+      - 'happy: verify generateEvaluationBatch contract'
+      - 'auth: verify generateEvaluationBatch contract'
+      - 'validation: verify generateEvaluationBatch contract'
+      - 'business: verify generateEvaluationBatch contract'
+      - 'side-effect: verify generateEvaluationBatch contract'
+      x-state-transitions:
+        NONE:
+        - BATCH_CREATED
+        - RUNNING
+        - SUCCEEDED
+        - FAILED
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationGenerateRequest'
+      responses:
+        '202':
+          description: 생성 접수
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/EvaluationBatchResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-047
+      x-source-original-ids:
+      - CMN-FR-047
+    x-related-requirements:
+    - REQ-005
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-047
+    x-source-original-ids:
+    - CMN-FR-047
+  /api/evaluation-batches/{batchId}:
+    get:
+      operationId: getEvaluationBatch
+      summary: 평가자료 배치 상세 조회
+      x-related-requirements:
+      - REQ-005
+      - REQ-009
+      - REQ-013
+      - REQ-014
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/EvaluationBatchResponse'
+        '404':
+          description: 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-047
+      - FR-051
+      x-related-fr:
+      - FR-047
+      - FR-051
+      x-source-original-ids:
+      - CMN-FR-047
+      - CMN-FR-051
+    x-related-requirements:
+    - REQ-005
+    - REQ-009
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-047
+    - FR-051
+    x-source-original-ids:
+    - CMN-FR-047
+    - CMN-FR-051
+  /api/evaluation-batches/delete-preview:
+    get:
+      operationId: previewEvaluationDelete
+      summary: 평가자료 삭제대상 미리보기
+      x-related-requirements:
+      - REQ-006
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-048
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - name: evaluationYear
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: evaluationArea
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: generationBatchId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: 미리보기 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/DeletePreviewResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-048
+      x-source-original-ids:
+      - CMN-FR-048
+    x-related-requirements:
+    - REQ-006
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-048
+    x-source-original-ids:
+    - CMN-FR-048
+  /api/evaluation-batches/delete:
+    post:
+      operationId: deleteEvaluationBatchMaterials
+      summary: 생성 평가자료 일괄 삭제
+      x-related-requirements:
+      - REQ-006
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-048
+      x-business-rules:
+      - 삭제대상 미리보기 필요
+      - 삭제사유 필수
+      - 생성배치와 무관한 자료 제외
+      - 원천 실적 삭제 금지
+      x-side-effects:
+      - EvaluationMaterial soft delete
+      - EvaluationBatch DELETE job 생성
+      - BatchResult 생성
+      x-required-tests:
+      - 삭제사유 없음 400
+      - 미리보기 대상만 삭제
+      - 원천 실적 불변
+      - 생성배치 외 자료 제외
+      - 'happy: verify deleteEvaluationBatchMaterials contract'
+      - 'auth: verify deleteEvaluationBatchMaterials contract'
+      - 'validation: verify deleteEvaluationBatchMaterials contract'
+      - 'business: verify deleteEvaluationBatchMaterials contract'
+      - 'side-effect: verify deleteEvaluationBatchMaterials contract'
+      x-state-transitions:
+        ACTIVE:
+        - DELETED
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationDeleteRequest'
+      responses:
+        '202':
+          description: 삭제 접수
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/EvaluationBatchResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-048
+      x-source-original-ids:
+      - CMN-FR-048
+    x-related-requirements:
+    - REQ-006
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-048
+    x-source-original-ids:
+    - CMN-FR-048
+  /api/evaluation-batches/recalculate:
+    post:
+      operationId: recalculateScores
+      summary: 점수 재계산
+      x-related-requirements:
+      - REQ-007
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-049
+      x-business-rules:
+      - 선택 대상과 산식버전에 한정
+      - 산식/평가기준 변경 금지
+      - 원천 실적 수정 금지
+      x-side-effects:
+      - ScoreRecalculationDiff 생성
+      - 대상 점수 갱신
+      - BatchResult 생성
+      x-required-tests:
+      - 대상조건 확인
+      - 지정 대상만 재계산
+      - 전후 값 비교
+      - 대상 밖 자료 불변
+      - 'happy: verify recalculateScores contract'
+      - 'auth: verify recalculateScores contract'
+      - 'validation: verify recalculateScores contract'
+      - 'business: verify recalculateScores contract'
+      - 'side-effect: verify recalculateScores contract'
+      x-state-transitions:
+        SCORE_CURRENT:
+        - SCORE_RECALCULATED
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScoreRecalculateRequest'
+      responses:
+        '202':
+          description: 재계산 접수
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/EvaluationBatchResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-049
+      x-source-original-ids:
+      - CMN-FR-049
+    x-related-requirements:
+    - REQ-007
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-049
+    x-source-original-ids:
+    - CMN-FR-049
+  /api/evaluation-batches/{batchId}/score-diff:
+    get:
+      operationId: getScoreRecalculationDiff
+      summary: 재계산 전후 점수 비교 조회
+      x-related-requirements:
+      - REQ-007
+      - REQ-013
+      - REQ-014
+      parameters:
+      - name: batchId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/ScoreDiffListResponse'
+        '404':
+          description: 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-049
+      x-related-fr:
+      - FR-049
+      x-source-original-ids:
+      - CMN-FR-049
+    x-related-requirements:
+    - REQ-007
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-049
+    x-source-original-ids:
+    - CMN-FR-049
+  /api/final-evaluations:
+    get:
+      operationId: listFinalEvaluations
+      summary: 대상자별 최종평가 상태 조회
+      x-related-requirements:
+      - REQ-008
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-050
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - name: evaluationYear
+        in: query
+        schema:
+          type: integer
+      - name: organizationId
+        in: query
+        schema:
+          type: string
+      - name: confirmationStatus
+        in: query
+        schema:
+          type: string
+          enum:
+          - DRAFT
+          - CONFIRMED
+          - CANCELED
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/FinalEvaluationListResponse'
+        '403':
+          description: 권한 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-050
+      x-source-original-ids:
+      - CMN-FR-050
+    x-related-requirements:
+    - REQ-008
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-050
+    x-source-original-ids:
+    - CMN-FR-050
+  /api/final-evaluations/{evaluationId}/confirm:
+    post:
+      operationId: confirmFinalEvaluation
+      summary: 최종평가 확정
+      x-related-requirements:
+      - REQ-008
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-050
+      x-business-rules:
+      - 단과대학 담당자만 확정 가능
+      - 평가점수와 산출근거 직접 수정 금지
+      x-side-effects:
+      - FinalEvaluation CONFIRMED 변경
+      - 확정자/확정일시 audit
+      x-required-tests:
+      - 확정 성공
+      - 권한 없음 403
+      - 점수 불변
+      - 'happy: verify confirmFinalEvaluation contract'
+      - 'auth: verify confirmFinalEvaluation contract'
+      - 'validation: verify confirmFinalEvaluation contract'
+      - 'business: verify confirmFinalEvaluation contract'
+      - 'side-effect: verify confirmFinalEvaluation contract'
+      x-state-transitions:
+        DRAFT:
+        - CONFIRMED
+      parameters:
+      - name: evaluationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: 확정 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/FinalEvaluationResponse'
+        '403':
+          description: 권한 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-050
+      x-source-original-ids:
+      - CMN-FR-050
+    x-related-requirements:
+    - REQ-008
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-050
+    x-source-original-ids:
+    - CMN-FR-050
+  /api/final-evaluations/{evaluationId}/cancel:
+    post:
+      operationId: cancelFinalEvaluation
+      summary: 최종평가 확정취소
+      x-related-requirements:
+      - REQ-008
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-050
+      x-business-rules:
+      - 취소 권한 필요
+      - 취소사유 필수
+      - 평가점수와 산출근거 직접 수정 금지
+      x-side-effects:
+      - FinalEvaluation CANCELED 변경
+      - 취소자/취소일시/취소사유 audit
+      x-required-tests:
+      - 사유 있는 취소 성공
+      - 사유 없음 400
+      - 권한 없음 403
+      - 점수 불변
+      - 'happy: verify cancelFinalEvaluation contract'
+      - 'auth: verify cancelFinalEvaluation contract'
+      - 'validation: verify cancelFinalEvaluation contract'
+      - 'business: verify cancelFinalEvaluation contract'
+      - 'side-effect: verify cancelFinalEvaluation contract'
+      x-state-transitions:
+        CONFIRMED:
+        - CANCELED
+      parameters:
+      - name: evaluationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelFinalEvaluationRequest'
+      responses:
+        '200':
+          description: 취소 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/FinalEvaluationResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 권한 없음
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-050
+      x-source-original-ids:
+      - CMN-FR-050
+    x-related-requirements:
+    - REQ-008
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-050
+    x-source-original-ids:
+    - CMN-FR-050
+  /api/batch-results:
+    get:
+      operationId: listBatchResults
+      summary: 일괄처리 결과 조회
+      x-related-requirements:
+      - REQ-009
+      - REQ-013
+      - REQ-014
+      x-related-fr:
+      - FR-051
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/SizeParam'
+      - name: batchId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: jobType
+        in: query
+        schema:
+          type: string
+          enum:
+          - GENERATE
+          - DELETE
+          - RECALCULATE
+          - CONFIRM
+          - CANCEL_CONFIRM
+      - name: evaluationYear
+        in: query
+        schema:
+          type: integer
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/BatchResultListResponse'
+        '400':
+          description: 검증 오류
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    error:
+                      $ref: '#/components/schemas/ErrorResponse'
+      x-source-ids:
+      - FR-051
+      x-source-original-ids:
+      - CMN-FR-051
+    x-related-requirements:
+    - REQ-009
+    - REQ-013
+    - REQ-014
+    x-source-ids:
+    - FR-051
+    x-source-original-ids:
+    - CMN-FR-051
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 20
+    SortParam:
+      name: sort
+      in: query
+      schema:
+        type: string
+        example: updatedAt
+        desc: null
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - success
+      - data
+      properties:
+        success:
+          type: boolean
+        data:
+          nullable: true
+        error:
+          $ref: '#/components/schemas/ApiError'
+        traceId:
+          type: string
+    ApiError:
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+    ErrorResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+      - type: object
+        properties:
+          data:
+            nullable: true
+    Page:
+      type: object
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+    HealthResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+      - type: object
+        properties:
+          data:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                - UP
+                - DOWN
+              service:
+                type: string
+    VerificationDecisionRequest:
+      type: object
+      required:
+      - decisionType
+      - opinion
+      - evidence
+      properties:
+        decisionType:
+          type: string
+          enum:
+          - CERTIFY
+          - REJECT
+          - CANCEL_CERTIFICATION
+        opinion:
+          type: string
+        evidence:
+          type: string
+    VerificationResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    VerificationListResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    PaymentDecisionRequest:
+      type: object
+      required:
+      - decisionType
+      properties:
+        decisionType:
+          type: string
+          enum:
+          - APPROVE
+          - REJECT
+          - CANCEL_APPROVAL
+        reason:
+          type: string
+    PaymentApprovalResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    PaymentApprovalListResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    RejectionReasonRequest:
+      type: object
+      required:
+      - businessType
+      - reasonCode
+      - standardMessage
+      - allowAdditionalComment
+      properties:
+        businessType:
+          type: string
+        reasonCode:
+          type: string
+        standardMessage:
+          type: string
+        allowAdditionalComment:
+          type: boolean
+    RejectionReasonResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    RejectionReasonListResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    AppealReviewRequest:
+      type: object
+      required:
+      - reviewerOpinion
+      - processingResult
+      properties:
+        reviewerOpinion:
+          type: string
+        processingResult:
+          type: string
+          enum:
+          - ACCEPTED
+          - REJECTED
+          - PARTIAL
+    AppealOpinionResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    AppealOpinionListResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    EvaluationGenerateRequest:
+      type: object
+      required:
+      - evaluationYear
+      - evaluationArea
+      - generationCriteria
+      properties:
+        evaluationYear:
+          type: integer
+        evaluationArea:
+          type: string
+        organizationIds:
+          type: array
+          items:
+            type: string
+        targetUserIds:
+          type: array
+          items:
+            type: string
+        generationCriteria:
+          type: string
+    EvaluationBatchResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    DeletePreviewResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    EvaluationDeleteRequest:
+      type: object
+      required:
+      - evaluationYear
+      - evaluationArea
+      - generationBatchId
+      - deleteReason
+      properties:
+        evaluationYear:
+          type: integer
+        evaluationArea:
+          type: string
+        generationBatchId:
+          type: string
+          format: uuid
+        deleteReason:
+          type: string
+    ScoreRecalculateRequest:
+      type: object
+      required:
+      - evaluationYear
+      - targetUserIds
+      - evaluationArea
+      - formulaVersion
+      properties:
+        evaluationYear:
+          type: integer
+        targetUserIds:
+          type: array
+          items:
+            type: string
+        evaluationArea:
+          type: string
+        formulaVersion:
+          type: string
+    ScoreDiffListResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    FinalEvaluationListResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    FinalEvaluationResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+    CancelFinalEvaluationRequest:
+      type: object
+      required:
+      - cancelReason
+      properties:
+        cancelReason:
+          type: string
+    BatchResultListResponse:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponse'
+x-contract-traceability-note: REQ-013 maps API operations to imperative/blocking/MyBatis
+  persistence; REQ-014 maps API operations consumed by the UI route inventory and
+  state contract.
